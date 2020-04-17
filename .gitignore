@@ -190,3 +190,12 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+
+
+#Output Txt Files
+
+*.txt
+
+
+
