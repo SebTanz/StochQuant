@@ -9,10 +9,10 @@ import numpy as np
 import matplotlib.animation as animation
 from matplotlib import pyplot as plt
 
-potential = "harmosc"
+#potential = "harmosc"
 #potential = "poeschlTeller"
 #potential = "double_well"
-#potential = "quartic"
+potential = "quartic"
 
 
 class dataThread (threading.Thread):
@@ -81,8 +81,8 @@ class animThread (threading.Thread):
 
 presets = {
     "harmosc": {
-        "dtau": 0.03,
-        "Nt": 1000,
+        "dtau": .3,
+        "Nt": 100,
         "dt": .1,
         "potID":0,
         "theoVal":1.,
@@ -90,9 +90,9 @@ presets = {
         "filename":"HarmOsc.txt"
     },
     "poeschlTeller": {
-        "dtau": .0001,
-        "Nt": 10000,
-        "dt": 0.01,
+        "dtau": .1,
+        "Nt": 100,
+        "dt": 1.,
         "potID":1,
         "theoVal":.1315,
         "c":1.,
@@ -109,11 +109,12 @@ presets = {
     },
     "quartic": {
         "dtau": 0.1,
-        "Nt": 1000,
-        "dt": 0.1,
+        "Nt": 100,
+        "dt": 1.,
         "potID":2,
         "theoVal":1.73,
-        "c":31.62277660168379332e-3,
+        #"c":31.62277660168379332e-3,
+        "c":1.,
         "filename":"Quartic.txt"
     }
 }
@@ -121,18 +122,18 @@ preset = presets[potential]
 n = preset["Nt"]
 deltat = preset["dt"]
 deltatau = preset["dtau"]
-h = 1e-6
+h = 1e-3
 parisi = 1
-entw = 100000
+entw = 300000
 potID = preset["potID"]
 c = preset["c"]
 strtval = preset["theoVal"]
 mdpoint = 50.
 device = 0
 rpf = 1000
-intime = 0
-inputf = preset["filename"]
-#inputf = "0"
+intime = 50000
+#inputf = preset["filename"]
+inputf = "0"
 outputf = preset["filename"]
 acco = 40
 
