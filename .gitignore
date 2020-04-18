@@ -196,6 +196,7 @@ dkms.conf
 #Output Txt Files
 
 *.txt
+*.kate-swp
 
 
 

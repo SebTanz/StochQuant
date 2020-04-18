@@ -1,6 +1,7 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
 
+
 double dharmosc(double a){
     double omega=1.;
     double mass =1.;

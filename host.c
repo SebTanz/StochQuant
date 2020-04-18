@@ -35,32 +35,33 @@ int min(int m, int n){
 int main(int argc, char **argv) {
     // Create the two input vectors
     
-    const int LIST_SIZE = atoi(argv[1]);
-    const double deltat = atof(argv[2]);
-    const double deltatau = atof(argv[3]);
-    const double h = atof(argv[4]);
-    const int parisi = atoi(argv[5]);
-    const int frames = atoi(argv[6]);
-    const int potID = atoi(argv[7]);
-    const double C = atof(argv[8]);
-    const int dev = atoi(argv[9]);
-    const int fps = atoi(argv[10]);
-    const int inTime = atoi(argv[11]);;
-    const char * startFile = argv[12];
-    const char * endFile = argv[13];
-    const int endAccuracy = atoi(argv[14]);
+    const int LIST_SIZE     = atoi(argv[1]);
+    const double deltat     = atof(argv[2]);
+    const double deltatau   = atof(argv[3]);
+    const double h          = atof(argv[4]);
+    const int parisi        = atoi(argv[5]);
+    const int frames        = atoi(argv[6]);
+    const int potID         = atoi(argv[7]);
+    const double C          = atof(argv[8]);
+    const int dev           = atoi(argv[9]);
+    const int fps           = atoi(argv[10]);
+    const int inTime        = atoi(argv[11]);
+    const char * startFile  = argv[12];
+    const char * endFile    = argv[13];
+    const int endAccuracy   = atoi(argv[14]);
 //     printf("%d, %f, %f, %f\n", LIST_SIZE, deltat, deltatau, h);
     int recSimlgth;
     
-    double *x = (double*)malloc(sizeof(double)*LIST_SIZE);
-    double *xh = (double*)malloc(sizeof(double)*LIST_SIZE);
-    double *newx = (double*)malloc(sizeof(double)*LIST_SIZE);
-    double *newxh = (double*)malloc(sizeof(double)*LIST_SIZE);
+    double *x       = (double*)malloc(sizeof(double)*LIST_SIZE);
+    double *xh      = (double*)malloc(sizeof(double)*LIST_SIZE);
+    double *newx    = (double*)malloc(sizeof(double)*LIST_SIZE);
+    double *newxh   = (double*)malloc(sizeof(double)*LIST_SIZE);
     
-    double *rand1 = (double*)malloc(sizeof(double)*LIST_SIZE);
+    double *rand1   = (double*)malloc(sizeof(double)*LIST_SIZE);
     
     int stable = 1;
     
+    double dtautmp = deltatau;
     
     int lrgEl = 0;
     double lrgVl = 0;
@@ -81,12 +82,8 @@ int main(int argc, char **argv) {
     if(strcmp(startFile, "0")==0){
 //         printf("no file !");
         for(i = 0; i < LIST_SIZE; i++) {
-    //         x[i] = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
-    //         x[i]=cosh((double)i*deltat);
             x[i]=0;
-    //         x[i]=pow((exp(deltat/2 *(double)i-mdpoint) + exp(-deltat/2 *(double)i) )/(1+ exp(-deltat * mdpoint)),2.*strtval);
             xh[i] = x[i]+h;
-//             xh[i]=0;
             newx[i] = x[i];
             newxh[i] = xh[i];
             xsum[i]=x[i];
@@ -122,6 +119,13 @@ int main(int argc, char **argv) {
                     litstr[n] = string[n];
                 if(i==LIST_SIZE){
                     recSimlgth = atoi(litstr);
+//                     printf("%d\n",recSimlgth);
+                }
+                if(i==LIST_SIZE+1){
+                    
+                    dtautmp = atof(litstr);
+                    if(dtautmp>deltatau)
+                        dtautmp=deltatau;
 //                     printf("%d\n",recSimlgth);
                 }
                 if (i<LIST_SIZE){
@@ -309,7 +313,7 @@ int main(int argc, char **argv) {
                                sizeof(int), &stable, 0, NULL, NULL);
     
     ret = clEnqueueWriteBuffer(command_queue, dt_mem_obj, CL_TRUE, 0, 
-                               sizeof(double), &deltatau, 0, NULL, NULL);
+                               sizeof(double), &dtautmp, 0, NULL, NULL);
     
     
     ret = clEnqueueWriteBuffer(command_queue, lE_mem_obj, CL_TRUE, 0, 
@@ -342,36 +346,11 @@ int main(int argc, char **argv) {
     // Create a program from the kernel source
     cl_program program = clCreateProgramWithSource(context, 1, 
             (const char **)&source_str, (const size_t *)&source_size, &ret);
-    /*
-    if(ret==CL_INVALID_CONTEXT)printf("Fail: CL_INVALID_CONTEXT\n");
-    else printf("Success: clCreateProgramWithSource\n");
-    if(ret==CL_INVALID_VALUE)printf("Fail: CL_INVALID_VALUE\n");
-    else printf("Success: clCreateProgramWithSource\n");
-    if(ret==CL_OUT_OF_HOST_MEMORY)printf("Fail: CL_OUT_OF_HOST_MEMORY\n");
-    else printf("Success: clCreateProgramWithSource\n");
-    */
+    
+    
     // Build the program
     ret = clBuildProgram(program, 1, device0, NULL, NULL, NULL);
-    /*
-    if(ret==CL_INVALID_PROGRAM)printf("Fail: CL_INVALID_PROGRAM\n");
-    else printf("Success: clBuildProgram\n");
-    if(ret==CL_INVALID_VALUE)printf("Fail: CL_INVALID_VALUE\n");
-    else printf("Success: clBuildProgram\n");
-    if(ret==CL_INVALID_DEVICE)printf("Fail: CL_INVALID_DEVICE\n");
-    else printf("Success: clBuildProgram\n");
-    if(ret==CL_INVALID_BINARY)printf("Fail: CL_INVALID_BINARY\n");
-    else printf("Success: clBuildProgram\n");
-    if(ret==CL_INVALID_BUILD_OPTIONS)printf("Fail: CL_INVALID_BUILD_OPTIONS\n");
-    else printf("Success: clBuildProgram\n");
-    if(ret==CL_INVALID_OPERATION)printf("Fail: CL_INVALID_OPERATION\n");
-    else printf("Success: clBuildProgram\n");
-    if(ret==CL_COMPILER_NOT_AVAILABLE)printf("Fail: CL_COMPILER_NOT_AVAILABLE\n");
-    else printf("Success: clBuildProgram\n");
-    if(ret==CL_BUILD_PROGRAM_FAILURE)printf("Fail: CL_BUILD_PROGRAM_FAILURE\n");
-    else printf("Success: clBuildProgram\n");
-    if(ret==CL_OUT_OF_HOST_MEMORY)printf("Fail: CL_OUT_OF_HOST_MEMORY\n");
-    else printf("Success: clBuildProgram\n");
-    */
+    
     if (ret == CL_BUILD_PROGRAM_FAILURE) {
     // Determine the size of the log
         size_t log_size;
@@ -447,7 +426,7 @@ int main(int argc, char **argv) {
     double expec2;
     double tmp;
     
-    double dtautmp=deltatau;
+    
     int stabCnt=0;
     
     
@@ -457,8 +436,6 @@ int main(int argc, char **argv) {
     double aver1;
     double aver2;
     
-//     printf("% -.10f ", xh[0]-xh[LIST_SIZE-1]);
-//     printf("\n\n");
     int runs = 0;
     for(int j=0; j<frames; j++){
         
@@ -476,10 +453,7 @@ int main(int argc, char **argv) {
                 if (parisi==1){
                     aver1=(xhsum[i]-xsum[i])/h/(double)(runs+1+recSimlgth);
                     aver2=(xhsum[i-1]-xsum[i-1])/h/(double)(runs+1+recSimlgth);
-//                     printf(" % -.20f |", xhsum[i]-xsum[i]);
                     printf(" % -.20f |", (log(aver1)-log(aver2))/deltat);
-//                     printf(" %f ",(double)(runs+1+recSimlgth));
-//                     printf(" % -.20f |", (log((xh[i]-x[i])/h)-log((xh[i-1]-x[i-1])/h))/deltat);
                 }
                 else{
                     aver1=(xsum[i]*xsum[0])/(double)(runs+1+recSimlgth);
@@ -533,7 +507,7 @@ int main(int argc, char **argv) {
                                   sizeof(int), &sameness, 0, NULL, NULL);
         
         if (sameness==1){
-            printf("sameness %d", sameness);
+//             printf("sameness %d", sameness);
             
             for(i=0; i<LIST_SIZE; i++){
 //                 samRd = h*((double)(rand() + 1. )/( (double)(RAND_MAX) + 1.)+0.5);
@@ -562,7 +536,7 @@ int main(int argc, char **argv) {
         fflush(stdout);
         
     }
-    printf("%d\n",recSimlgth);
+//     printf("%d\n",recSimlgth);
     
     if(strcmp(endFile, "0")!=0){
         fp = fopen(endFile, "w");
@@ -576,7 +550,8 @@ int main(int argc, char **argv) {
             fprintf(fp, "% -*a|% -*a\n",endAccuracy,xsum[i], endAccuracy, xhsum[i]);
             
         }
-        fprintf(fp, "%d\n", runs+1+recSimlgth);
+        fprintf(fp, "%*d|N\n", endAccuracy, runs+1+recSimlgth);
+        fprintf(fp, "% -*e|deltaTau\n", endAccuracy, dtautmp);
         fclose( fp );
         
     }

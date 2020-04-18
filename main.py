@@ -9,10 +9,10 @@ import numpy as np
 import matplotlib.animation as animation
 from matplotlib import pyplot as plt
 
-#potential = "harmosc"
+potential = "harmosc"
 #potential = "poeschlTeller"
 #potential = "double_well"
-potential = "quartic"
+#potential = "quartic"
 
 
 class dataThread (threading.Thread):
@@ -123,23 +123,23 @@ n = preset["Nt"]
 deltat = preset["dt"]
 deltatau = preset["dtau"]
 h = 1e-3
-parisi = 1
+parisi = 0
 entw = 300000
 potID = preset["potID"]
 c = preset["c"]
 strtval = preset["theoVal"]
 mdpoint = 50.
-device = 0
+device = 2
 rpf = 1000
-intime = 50000
-#inputf = preset["filename"]
-inputf = "0"
+intime = 1000
+inputf = preset["filename"]
+#inputf = "0"
 outputf = preset["filename"]
 acco = 40
 
 dmax=strtval+.5*strtval
 
-p = subprocess.Popen(['./host.o',str(n),str(deltat),str(deltatau),str(h),str(parisi), str(entw), str(potID), str(c), str(device), str(rpf), str(intime), inputf, outputf, str(acco)], stdout=subprocess.PIPE, bufsize=1)
+p = subprocess.Popen(['./host.o', str(n), str(deltat), str(deltatau), str(h), str(parisi), str(entw), str(potID), str(c), str(device), str(rpf), str(intime), inputf, outputf, str(acco)], stdout=subprocess.PIPE, bufsize=1)
 ev = threading.Event()
 queue = Queue()
 closeEv = threading.Event()

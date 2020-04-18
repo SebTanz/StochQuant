@@ -1,5 +1,7 @@
 # StochQuant
 
+Host kompilieren und dann über main.py aufrufen!
+
 Zum Kompilieren
 
 ```
