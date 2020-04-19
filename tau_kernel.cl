@@ -52,23 +52,23 @@ __kernel void time_dev(__global double *f,
     
     
     if(i==0){
-        newf[i] = f[0]-m*deltatau*(f[1]+f[N-1]-2*f[0])/(double)pown((float)deltat,2)-ddPot(clas((double)i*deltat, om, potID)+f[0], potID) * f[0] *deltatau + dw;
+        newf[i] = f[0]+m*deltatau*(f[1]+f[N-1]-2*f[0])/(double)pown((float)deltat,2)-ddPot(clas((double)i*deltat, om, potID)+f[0], potID) * f[0] *deltatau + dw;
         
-        newfh[i] = fh[0]-m*deltatau*(fh[1]+fh[N-1]-2*fh[0])/(double)pown((float)deltat,2) -ddPot(clas((double)i*deltat, om, potID)+fh[0], potID)* fh[0] *deltatau + dw;
+        newfh[i] = fh[0]+m*deltatau*(fh[1]+fh[N-1]-2*fh[0])/(double)pown((float)deltat,2) -ddPot(clas((double)i*deltat, om, potID)+fh[0], potID)* fh[0] *deltatau + dw ;
         
         
     }
     else{
         if(i==N-1){
-            newf[i] = f[N-1]-m*deltatau*(f[0]+f[N-2]-2*f[N-1])/(double)pown((float)deltat,2)-ddPot(clas((double)i*deltat, om, potID)+f[N-1], potID)* f[N-1] *deltatau + dw;
+            newf[i] = f[N-1]+m*deltatau*(f[0]+f[N-2]-2*f[N-1])/(double)pown((float)deltat,2)+ddPot(clas((double)i*deltat, om, potID)+f[N-1], potID)* f[N-1] *deltatau + dw;
             
-            newfh[i] = fh[N-1]-m*deltatau*(fh[0]+fh[N-2]-2*fh[N-1])/(double)pown((float)deltat,2) -ddPot(clas((double)i*deltat, om, potID)+fh[N-1], potID)* fh[N-1] *deltatau + dw;
+            newfh[i] = fh[N-1]+m*deltatau*(fh[0]+fh[N-2]-2*fh[N-1])/(double)pown((float)deltat,2) -ddPot(clas((double)i*deltat, om, potID)+fh[N-1], potID)* fh[N-1] *deltatau + dw;
             
         }
         else{
-            newf[i] = f[i]-m*deltatau*(f[i+1]+f[i-1]-2*f[i])/(double)pown((float)deltat,2)-ddPot(clas((double)i*deltat, om, potID)+f[i], potID) * f[i] *deltatau + dw;
+            newf[i] = f[i]+m*deltatau*(f[i+1]+f[i-1]-2*f[i])/(double)pown((float)deltat,2)-ddPot(clas((double)i*deltat, om, potID)+f[i], potID) * f[i] *deltatau + dw;
             
-            newfh[i] = fh[i]-m*deltatau*(fh[i+1]+fh[i-1]-2*fh[i])/(double)pown((float)deltat,2) -ddPot(clas((double)i*deltat, om, potID)+fh[i], potID)* fh[i] *deltatau + dw;
+            newfh[i] = fh[i]+m*deltatau*(fh[i+1]+fh[i-1]-2*fh[i])/(double)pown((float)deltat,2) -ddPot(clas((double)i*deltat, om, potID)+fh[i], potID)* fh[i] *deltatau + dw;
         }
         
     }
@@ -102,7 +102,17 @@ __kernel void time_dev(__global double *f,
         *lrgVl=absol(newf[i]);
     }
     
+    
+//     newf[i]=0;
+//     newfh[i]=h;
+    
 }
+
+
+
+
+
+
 
 
 double harmoscSol(double a){

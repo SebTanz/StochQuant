@@ -28,17 +28,18 @@ class dataThread (threading.Thread):
         now = time()
         while True:
             line = self.proc.stdout.readline()
+            tmp=np.genfromtxt(BytesIO(line.strip()), delimiter="|")
+            if tmp.size>1:
+                self.perc=tmp[-1]
             if line == b'' and self.proc.poll() is not None: 
                 break
             elif not self.e.isSet():
-                
-                tmp=np.genfromtxt(BytesIO(line.strip()), delimiter="|")
                 #print(tmp)
+                #print("something")
                 if tmp.size>1:
-                    self.perc=tmp[-1]
                     self.q.put(tmp[:-1])
-                if self.cE.isSet():
-                    self.e.set()
+                    if self.cE.isSet():
+                        self.e.set()
             print("%.2f" %self.perc+"%")
         print("100.00%, "+str(time()-now)+" seconds")
         self.proc.stdout.close()
@@ -66,11 +67,17 @@ class animThread (threading.Thread):
             ax.set_ylim(self.axlim[0], self.axlim[1])
             return ln,
         def update(frame):
-            if self.e.isSet():
+            #print("something")
+            if self.e.isSet():#
+                
                 self.y = self.q.get()
+                #print("something")
+                #tempor = self.q.get()
+                #nanidx = np.logical_not(np.isnan(tempor))
+                #self.y[nanidx] = tempor[nanidx]
                 self.e.clear()
             tx.set_text(str(self.y[0])+", "+str(self.y[-1]))
-            
+            #print(self.y)
             ln.set_data(self.time, self.y)
             return ln,
         ani = animation.FuncAnimation(fig, update, frames=self.frames, init_func=init, blit=False)
@@ -98,42 +105,42 @@ presets = {
         "c":1.,
         "filename":"PoeschlTeller.txt"
     },
-    "double_well": {
-        "dtau": 0.01,
-        "Nt": 100,
-        "dt": 1.,
-        "potID":3,
-        "theoVal":.7,
-        "c":1.,
-        "filename":"tauDoubleWell.txt"
-    },
     "quartic": {
-        "dtau": 0.1,
-        "Nt": 100,
-        "dt": 1.,
+        "dtau": 0.01,
+        "Nt": 50,
+        "dt": 2,
         "potID":2,
         "theoVal":1.73,
         #"c":31.62277660168379332e-3,
         "c":1.,
         "filename":"Quartic.txt"
+    },
+    "double_well": {
+        "dtau": .00001,
+        "Nt": 50,
+        "dt": .4,
+        "potID":3,
+        "theoVal":.7,
+        "c":1.,
+        "filename":"tauDoubleWell.txt"
     }
 }
 preset = presets[potential]
 n = preset["Nt"]
 deltat = preset["dt"]
 deltatau = preset["dtau"]
-h = 1e-3
-parisi = 0
-entw = 300000
+h = 1e-4
+parisi = 1
+entw = 10000
 potID = preset["potID"]
 c = preset["c"]
 strtval = preset["theoVal"]
 mdpoint = 50.
 device = 2
-rpf = 1000
-intime = 100000
+rpf = 1
+intime = 100
 inputf = preset["filename"]
-inputf = "0"
+#inputf = "0"
 outputf = preset["filename"]
 #outputf = "0"
 acco = 40
