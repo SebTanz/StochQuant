@@ -8,6 +8,7 @@ from time import sleep, time
 import numpy as np
 import matplotlib.animation as animation
 from matplotlib import pyplot as plt
+from sys import stdout
 
 #potential = "harmosc"
 #potential = "poeschlTeller"
@@ -24,23 +25,25 @@ class dataThread (threading.Thread):
         self.e = e
         self.cE = cE
         self.perc = 0.
+        self.dtau = 0
     def run(self):
         now = time()
         while True:
             line = self.proc.stdout.readline()
             tmp=np.genfromtxt(BytesIO(line.strip()), delimiter="|")
             if tmp.size>1:
-                self.perc=tmp[-1]
+                self.dtau = tmp[-2]
+                self.perc = tmp[-1]
             if line == b'' and self.proc.poll() is not None: 
                 break
             elif not self.e.isSet():
                 #print(tmp)
                 #print("something")
                 if tmp.size>1:
-                    self.q.put(tmp[:-1])
+                    self.q.put(tmp[:-2])
                     if self.cE.isSet():
                         self.e.set()
-            print("%.2f" %self.perc+"%")
+            stdout.write("%6.2f" %self.perc+"%%| DeltaTau = %.2e"%self.dtau+"\r")
         print("100.00%, "+str(time()-now)+" seconds")
         self.proc.stdout.close()
         self.proc.wait()
@@ -68,7 +71,7 @@ class animThread (threading.Thread):
             return ln,
         def update(frame):
             #print("something")
-            if self.e.isSet():#
+            if self.e.isSet():
                 
                 self.y = self.q.get()
                 #print("something")
@@ -116,11 +119,11 @@ presets = {
         "filename":"Quartic.txt"
     },
     "double_well": {
-        "dtau": .00001,
+        "dtau": .001,
         "Nt": 50,
-        "dt": .4,
+        "dt": 1.1,
         "potID":3,
-        "theoVal":.7,
+        "theoVal":3,
         "c":1.,
         "filename":"tauDoubleWell.txt"
     }
@@ -131,16 +134,16 @@ deltat = preset["dt"]
 deltatau = preset["dtau"]
 h = 1e-4
 parisi = 1
-entw = 10000
+entw = 50000000
 potID = preset["potID"]
 c = preset["c"]
 strtval = preset["theoVal"]
 mdpoint = 50.
 device = 2
-rpf = 1
-intime = 100
+rpf = 100
+intime = 1000
 inputf = preset["filename"]
-#inputf = "0"
+inputf = "0"
 outputf = preset["filename"]
 #outputf = "0"
 acco = 40

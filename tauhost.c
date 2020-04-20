@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
     
     v1 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
     v2 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
-    omega = sqrt(2.*deltatau/deltat) *sin(2.*3.14*v2) *sqrt(-2.*log(v1));
+    omega = sqrt(2.*deltatau/deltat) *sin(2.*3.14*v2) *sqrt(-2.*log(v1))+30.;
     
     
     if(strcmp(startFile, "0")==0){
@@ -83,14 +83,10 @@ int main(int argc, char **argv) {
         
         
         for(i = 0; i < LIST_SIZE; i++) {
-            xcl[i] = clas((double)i*deltat, omega, potID);
-            f[i]=0;
-            fh[i] = f[i]+h;
-            newf[i] = f[i];
-            newfh[i] = fh[i];
             
-            fsum[i] = f[i];
-            fhsum[i] = fh[i];
+            
+            fsum[i] = 0;
+            fhsum[i] = h;
             
             v1 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
             v2 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
@@ -133,19 +129,12 @@ int main(int argc, char **argv) {
 //                     printf("%d\n",recSimlgth);
                 }
                 if (i<LIST_SIZE){
-                    xcl[i] = clas((double)i*deltat, omega, potID);
                     token = strtok(litstr, "|");
                     fsum[i] = (double)atof(token);
                     token = strtok(NULL, "|");
                     fhsum[i] = (double)atof(token);
 //                     printf("%f|%f\n",fsum[i],fhsum[i]);
-                    f[i]=0;
-                    fh[i] = f[i]+h;
-                    newf[i] = f[i];
-                    newfh[i] = fh[i];
                     
-                    fsum[i] += f[i];
-                    fhsum[i] += fh[i];
                     
                     
                     v1 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
@@ -175,6 +164,26 @@ int main(int argc, char **argv) {
 //         free(tmp);
         i=0;
         fclose( fp );
+        
+    }
+    
+    for (i=0; i<LIST_SIZE; i++){
+        if (recSimlgth==0){
+            
+//             f[i] = exp((double)i*deltat) - clas((double)i*deltat, omega, potID);
+//             f[i] = exp((double)i*deltat);
+            f[i] = 1;
+            fh[i] = f[i]+h;
+            newf[i] = f[i];
+            newfh[i] = fh[i];
+        }
+        else{
+            f[i] = fsum[i]/(double)recSimlgth;
+            fh[i] = fhsum[i]/(double)recSimlgth;
+            newf[i] = f[i];
+            newfh[i] = fh[i];
+        }
+        
         
     }
     // Load the kernel source code into the array source_str
@@ -473,21 +482,21 @@ int main(int argc, char **argv) {
                     aver2=(fhsum[i-1]-fsum[i-1])/h/(double)(runs+1+recSimlgth);
                     printf(" % -.20f |", (log(absol(aver1))-log(absol(aver2)))/deltat);
                     
-//                     printf("% -.20f|", ((fh[i] - f[i]) -(fh[i-1] - f[i-1]))/h/deltat);
+//                     printf("% -.20f|", (log(absol((fh[i] - f[i])/h)) -log(absol((fh[i-1] - f[i-1])/h)))/deltat);
                 }
                 else{
                     aver1=fsum[i]*(fsum[0]/(double)(runs+1+recSimlgth));
                     aver2=fsum[i-1]*(fsum[0]/(double)(runs+1+recSimlgth));
-//                     printf(" % -.20f |", (log(aver1)-log(aver2))/deltat);
+                    printf(" % -.20f |", (log(aver1)-log(aver2))/deltat);
 //                     printf("% -.20f |", aver1);
 //                     printf(" % -.20f |", omega);
                     xcl[i] = clas((double)i*deltat, omega, potID);
-                    printf("% -.20f|", (f[i] + xcl[i])*(f[0] + xcl[0]));
+//                     printf("% -.20f|", (fsum[i] + xcl[i])*(fsum[0] + xcl[0]));
                     
                     
                 }
                 if(i==LIST_SIZE-1){
-//                     printf("% -.20f",dtautmp);
+                    printf("% -.20f | ",dtautmp);
                    
                     printf("% -.2f\n", 100.*((double)j+1)/(double)frames);
                 }
@@ -524,12 +533,16 @@ int main(int argc, char **argv) {
             }
             
 //             dtautmp=deltatau;
-//             ret = clEnqueueWriteBuffer(command_queue, dt_mem_obj, CL_TRUE,   0,sizeof(double), &dtautmp, 0, NULL, NULL);
+            if(stabCnt>44){
+                stabCnt--;
+                dtautmp/=0.950;
+                ret = clEnqueueWriteBuffer(command_queue, dt_mem_obj, CL_TRUE,   0,sizeof(double), &dtautmp, 0, NULL, NULL);
+            }
             
             
         }
         else{
-            printf("unstable %d\n", stable);
+//             printf("unstable %d\n", stable);
             ret = clEnqueueReadBuffer(command_queue, dt_mem_obj, CL_TRUE, 0, 
                                         sizeof(double), &dtautmp, 0, NULL, NULL);
 //             ret = clEnqueueReadBuffer(command_queue, nf_mem_obj, CL_TRUE, 0, 
@@ -540,10 +553,10 @@ int main(int argc, char **argv) {
 //             for(i=0; i<LIST_SIZE; i++){
 //                 printf("% -.20f", f[i]);
 //             }
-            
             dtautmp*=0.950;
+            stabCnt++;
             ret = clEnqueueWriteBuffer(command_queue, dt_mem_obj, CL_TRUE, 0, 
-                               sizeof(double), &dtautmp, 0, NULL, NULL);
+                            sizeof(double), &dtautmp, 0, NULL, NULL);
             stable=1;
             ret = clEnqueueWriteBuffer(command_queue, st_mem_obj, CL_TRUE, 0, 
                                sizeof(int), &stable, 0, NULL, NULL);

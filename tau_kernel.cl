@@ -12,6 +12,7 @@ double doubleWellPot(double a);
 
 double clas(double a, double w, int pot);
 double ddPot(double a, int pot);
+double boundary(int rl, int pot);
 double absol(double a);
  
 
@@ -52,17 +53,29 @@ __kernel void time_dev(__global double *f,
     
     
     if(i==0){
-        newf[i] = f[0]+m*deltatau*(f[1]+f[N-1]-2*f[0])/(double)pown((float)deltat,2)-ddPot(clas((double)i*deltat, om, potID)+f[0], potID) * f[0] *deltatau + dw;
+//         newf[i] = f[0]+m*deltatau*(f[1]-f[0])/deltat-ddPot(clas((double)i*deltat, om, potID)+f[0], potID) * f[0] *deltatau + dw;
+        newf[i] = f[0]+m*deltatau*(f[1]+boundary(-1, potID)-clas(-1.*deltat, om, potID)-2*f[0])/(double)pown((float)deltat,2)-ddPot(clas((double)i*deltat, om, potID)+f[0], potID) * f[0] *deltatau + dw;
+//         newf[i] = boundary(-1, potID)-clas((double)i*deltat, om, potID) + dw;
+//         newf[i] = f[0]+m*deltatau*(f[1]+f[N-1]-2*f[0])/(double)pown((float)deltat,2)-ddPot(clas((double)i*deltat, om, potID)+f[0], potID) * f[0] *deltatau + dw;
         
-        newfh[i] = fh[0]+m*deltatau*(fh[1]+fh[N-1]-2*fh[0])/(double)pown((float)deltat,2) -ddPot(clas((double)i*deltat, om, potID)+fh[0], potID)* fh[0] *deltatau + dw ;
+//         newfh[i] = fh[0]+m*deltatau*(fh[1]-fh[0])/deltat -ddPot(clas((double)i*deltat, om, potID)+fh[0], potID)* fh[0] *deltatau + dw ;
+        newfh[i] = fh[0]+m*deltatau*(fh[1]+boundary(-1, potID)-clas(-1.*deltat, om, potID)-2*fh[0])/(double)pown((float)deltat,2) -ddPot(clas((double)i*deltat, om, potID)+fh[0], potID)* fh[0] *deltatau + dw ;
+//         newfh[i] = boundary(-1, potID)-clas((double)i*deltat, om, potID) + dw;
+//         newfh[i] = fh[0]+m*deltatau*(fh[1]+fh[N-1]-2*fh[0])/(double)pown((float)deltat,2) -ddPot(clas((double)i*deltat, om, potID)+fh[0], potID)* fh[0] *deltatau + dw ;
         
         
     }
     else{
         if(i==N-1){
-            newf[i] = f[N-1]+m*deltatau*(f[0]+f[N-2]-2*f[N-1])/(double)pown((float)deltat,2)+ddPot(clas((double)i*deltat, om, potID)+f[N-1], potID)* f[N-1] *deltatau + dw;
+//             newf[i] = f[N-1]+m*deltatau*(f[N-2]-f[N-1])/deltat+ddPot(clas((double)i*deltat, om, potID)+f[N-1], potID)* f[N-1] *deltatau + dw;
+            newf[i] = f[N-1]+m*deltatau*(boundary(1, potID)-clas((double)N*deltat, om, potID)+f[N-2]-2*f[N-1])/(double)pown((float)deltat,2)+ddPot(clas((double)i*deltat, om, potID)+f[N-1], potID)* f[N-1] *deltatau + dw;
+//             newf[i] = boundary(1, potID)-clas((double)i*deltat, om, potID) + dw;
+//             newf[i] = f[N-1]+m*deltatau*(f[0]+f[N-2]-2*f[N-1])/(double)pown((float)deltat,2)+ddPot(clas((double)i*deltat, om, potID)+f[N-1], potID)* f[N-1] *deltatau + dw;
             
-            newfh[i] = fh[N-1]+m*deltatau*(fh[0]+fh[N-2]-2*fh[N-1])/(double)pown((float)deltat,2) -ddPot(clas((double)i*deltat, om, potID)+fh[N-1], potID)* fh[N-1] *deltatau + dw;
+//             newfh[i] = fh[N-1]+m*deltatau*(fh[N-2]-fh[N-1])/deltat -ddPot(clas((double)i*deltat, om, potID)+fh[N-1], potID)* fh[N-1] *deltatau + dw;
+            newfh[i] = fh[N-1]+m*deltatau*(boundary(1, potID)-clas((double)N*deltat, om, potID)+fh[N-2]-2*fh[N-1])/(double)pown((float)deltat,2) -ddPot(clas((double)i*deltat, om, potID)+fh[N-1], potID)* fh[N-1] *deltatau + dw;
+//             newfh[i] = boundary(1, potID)-clas((double)i*deltat, om, potID) + dw;
+//             newfh[i] = fh[N-1]+m*deltatau*(fh[0]+fh[N-2]-2*fh[N-1])/(double)pown((float)deltat,2) -ddPot(clas((double)i*deltat, om, potID)+fh[N-1], potID)* fh[N-1] *deltatau + dw;
             
         }
         else{
@@ -74,7 +87,8 @@ __kernel void time_dev(__global double *f,
     }
     if(i==*lrgEl){
         if(absol(newf[i]-f[i]-dw)>*lrgVl){
-            *stable=0;
+            newf[i]=f[i];
+//             *stable=0;
         }
         else{
             *stable=1;
@@ -82,11 +96,13 @@ __kernel void time_dev(__global double *f,
     }
     
     if (isinf((float)newf[i])==1||isnan((float)newf[i])==1||isinf((float)newfh[i])==1||isnan((float)newfh[i])==1){
-        *stable=-1;
+        newf[i] = f[i];
+        newfh[i] = fh[i];
+//         *stable=-1;
     }
-    if (newf[i]==newfh[i]){
+    if (newf[i]==newfh[i]&&i!=0&&i!=N-1){
         newfh[i]=newf[i]+h;
-        *stable=-2;
+//         *stable=-2;
     }
     if(newfh[i]-newf[i]==fh[i]-f[i]){
         *sameness*=1;
@@ -139,14 +155,15 @@ double quartic(double a){
 
 double doubleWellSol(double t, double t0){
 //     float x0=1.;
-    
-    return (double)tanh((t-t0)/(double)sqrt((float)2));
+    float m = 1.;
+    return (double)tanh((t-t0)/(double)sqrt((float)m));
     
 }
 double doubleWellPot(double a){
 //     float x0=1.;
-    
-    return 6*a*a-2;
+    x = 0.5;
+    y = 1.;
+    return 12*x*a*a-2*y;
     
 }
 
@@ -194,6 +211,18 @@ double ddPot(double a, int pot){
 
     
 }
+double boundary(int rl, int pot){
+    
+    if (rl==1){
+        return 1.;
+    }
+    if (rl==-1){
+        return -1.;
+    }
+    
+}
+
+
 double absol(double a){
     
     if (a<=0){
