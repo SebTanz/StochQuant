@@ -1,0 +1,64 @@
+\documentclass[a4paper,parskip=half,10pt]{scrartcl}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{caption}
+\usepackage{subfigure}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{siunitx}
+\usepackage{isotope}
+\usepackage{tikz}
+\usepackage{mathrsfs}
+\begin{document}
+\section{taumain.py}
+Die Klasse "dataThread" dient zum Auslesen der Daten aus der tauhost.c Datei. Weiterhin benutzen wir die "animThread"-Klasse, um die Werte, die wir aus "dataThread" bekommen, zu plotten. Zur Datenverarbeitung haben wir einen Eventhandler zwischen "animThread" und "dataThread" benutzt.
+Mit den presets übergeben wir der tauhost-Datei, die für die verschiedenen Potentiale spezifischen Werte.
+Dann kommen die benutzten Variablen:
+\begin{itemize}
+\item n: Anzahl der Punkte
+\item deltat: Zeitunterschied zwischen zwei Punkten
+\item deltatau: Entwicklung der Liste über die fiktive Zeit tau
+\item h: Parisi-h
+\item parisi: Wird der Parisi-Trick benutzt oder nicht
+\item entw: Anzahl der Entwicklungsschritte
+\item c: eine momentan nicht benutzte Konstante
+\item device: ID des Geräts, das benutzt werden soll
+\item rpf: Mit rpf=1 werden in jedem Loop die Daten übergeben
+\item intime: Wie viele Loops laufen, bevor in fsum und fhsum geschrieben wird
+\item loops: Loops pro Entwicklungsschritt
+\item inputf: Möglichkeit der Dateieingabe
+\item outputf: In welche Datei wird geschrieben
+\item acco: Genauigkeit der geschrieben Daten
+\end{itemize}
+Das Unterprogramm mit den zuvor definierten Parametern wird ausgeführt in Zeile 154.
+
+\section{tauhost.c}
+\begin{itemize}
+\item bis Zeile 41: Parameter werden eingelesen
+\item Zeilen 47-50: Speicherplatz wird reserviert
+\item Zeile 56: Wenn deltatau sich ändert, wird deltatau nicht überschrieben, sondern in deltautmp geschrieben
+\item Zeilen 77-79: es werden mit Hilfe der Box-Müller-Transformation zwei gaußverteilte Zufallszahlen zwischen 0 und 1 erzeugt, damit wird omega zum ersten Mal berechnet
+\item Zeilen 82-172: Inputverarbeitung, falls Datei als Input genutzt wird
+\item Zeilen 174-192: Daten werden initialisiert (Seeds für Zufallszahlengeneration werden erstellt)
+\item Zeilen 205-255: Infos über das benutzte Gerät
+\item Zeilen 264-319: Speicherbuffer auf dem Gerät wird kreiert
+\item Zeilen 324-377: Werte werden das erste Mal in den Buffer geschrieben
+\item Zeile 381: Programm wird kreiert
+\item Zeile 403: Kernel erstellt
+\item Zeilen 417-433: Argumente werden an Kernel übergeben
+\item Zeile 481: Beginn des Hauptloops
+  \item Zeile 483: Kernel ausführen
+  \item Zeile 485: Synchronisierung
+  \item Zeile 487: Beginn zweiter Loop (Wertausgabe)
+\item Zeile 534: Wert für stable wird ausgelesen und der Kernel meldet, ob die Berechnung stabil verlief oder nicht
+\item Zeilen 547f: Wert wird fsum und fhsum hinzugefügt
+\item Zeile 563: Wenn die Berechnung nicht stabil verlief, dann wird deltatau aus dem Kernel ausgelesen, in deltatautmp geschrieben und das neu berechnete deltatau wird wieder an den Kernel zurückgegeben
+\item Zeile 600f: f-Werte aus dem host-Programm werden zurück in den Kernel geschrieben
+\item Zeilen 614-630: Möglichkeit in Output-Datei zu schreiben
+\item Zeilen 636-666: Speicherplatz wird freigegeben 
+
+\end{itemize}
+
+\end{document}
