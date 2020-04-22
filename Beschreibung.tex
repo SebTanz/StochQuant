@@ -13,7 +13,7 @@
 \usepackage{mathrsfs}
 \begin{document}
 \section{taumain.py}
-Die Klasse "dataThread" dient zum Auslesen der Daten aus der tauhost.c Datei. Weiterhin benutzen wir die "animThread"-Klasse, um die Werte, die wir aus "dataThread" bekommen, zu plotten. Zur Datenverarbeitung haben wir einen Eventhandler zwischen "animThread" und "dataThread" benutzt.
+Die Klasse "dataThread" dient zum Auslesen der Daten aus dem tauhost-Programm. Weiterhin benutzen wir die "animThread"-Klasse, um die Werte, die wir aus "dataThread" bekommen, zu plotten. Zur Datenverarbeitung haben wir einen Eventhandler zwischen "animThread" und "dataThread" benutzt.
 Mit den presets übergeben wir der tauhost-Datei, die für die verschiedenen Potentiale spezifischen Werte.
 Dann kommen die benutzten Variablen:
 \begin{itemize}
@@ -54,11 +54,32 @@ Das Unterprogramm mit den zuvor definierten Parametern wird ausgeführt in Zeile
   \item Zeile 487: Beginn zweiter Loop (Wertausgabe)
 \item Zeile 534: Wert für stable wird ausgelesen und der Kernel meldet, ob die Berechnung stabil verlief oder nicht
 \item Zeilen 547f: Wert wird fsum und fhsum hinzugefügt
-\item Zeile 563: Wenn die Berechnung nicht stabil verlief, dann wird deltatau aus dem Kernel ausgelesen, in deltatautmp geschrieben und das neu berechnete deltatau wird wieder an den Kernel zurückgegeben
+\item Zeile 563: Wenn die Berechnung nicht stabil verlief, dann wird deltatau aus dem Kernel ausgelesen, in deltatautmp geschrieben und das neu berechnete deltatau (altes $deltatau\cdot 0.95$) wird wieder an den Kernel zurückgegeben
 \item Zeile 600f: f-Werte aus dem host-Programm werden zurück in den Kernel geschrieben
 \item Zeilen 614-630: Möglichkeit in Output-Datei zu schreiben
 \item Zeilen 636-666: Speicherplatz wird freigegeben 
-
 \end{itemize}
 
+\section{tau\_kernel.cl}
+Der eigentliche Kern des Programms liegt hier. Dem Kernel wurden vom Hostprogramm einige Zeiger übergeben. Die wichtigsten hiervon sind \verb+__global double *f+, \verb+__global double *fh+, \verb+__global double *newf+, \verb+__global double *newfh+,\newline
+\verb+__global double *omega+ und \verb+__global ulong *rand1+. Diese sind der Reihenfolge nach: die Liste der Fluktuationen $f$ mit und ohne Parisi-$h$, Listen für neue Werte dieser Fluktuationen, ein Zeiger auf die kollektive Koordinate $\omega$, sowie eine Liste mit Seeds für die Zufallszahlengeneration. In den Zeilen 41-53 werden einige Konstanten lokal gespeichert und die globale ID \verb+i+ des Threads abgefragt.
+
+Dann beginnt der Hauptloop des Kernels, bei dem vorher spezifiziert werden kann, wie oft geloopt werden soll. Gibt es mehrere Work-Groups, können viele Loops aufgrund von nicht-synchronisiertem Ausführen zu Ungenauigkeiten führen. Zunächst wird das Noise \verb+dw+ berechnet. Hierzu wird in der Funktion \verb+random+ eine Zufallszahl mithilfe des Seeds \verb+rand[i]+ berechnet und per Box-Müller-Transformation in eine Gauß-verteilte Zufallszahl umgewandelt. Nun kommt endlich die eigentliche Zeitentwicklung der Fluktuationen $f$ und der kollektiven Koordinate $\omega$. Ist der Thread nicht für $\omega$, $f_{0}$ oder $f_{\mathrm{N-1}}$ verantwortlich, geschieht diese in den Zeilen 107-109 durch
+\begin{verbatim}
+newf[i] = f[i] + m*deltatau*(f[i+1]+f[i-1]-2*f[i])\\
+/(double)pown((float)deltat,2) - ddPot(clas((double)i * deltat, om,\\
+potID) + f[i], potID) * f[i] * deltatau + dw;
+\end{verbatim}.
+
+Ist der Thread für $f_{0}$ oder $f_{\mathrm{N-1}}$ verantwortlich, geschieht die Zeitentwicklung in den Zeilen 62-83 bzw. 83-101. Diese hängt von den Boundaryconditions ab und hier gibt es zwei Implementierungen:
+\begin{itemize}
+\item (Zeilen 63-68 und 84-88) Die äußersten Zeitpunkte befinden sich direkt neben Minus bzw. Plus Unendlich. Dies erscheint physikalisch sinnvoll, da wir hier die Boundaryconditions kennen: Nämlich die Lokalisierung des Teilchens in den Wells.
+\item (Zeilen 69-73 und 89-93) Eine periodische Boundarycondition wie im Manual. Dies erscheint wenig sinnvoll, gibt aber hübschere Kurven. 
+\end{itemize}
+
+Ist der Thread für $\omega$ verantwortlich, geschieht die Zeitentwicklung in Zeile 104 durch Multiplikation der Noise mit $\frac{\sqrt{3}}{2}$ im Falle des Double-Well-Potentials. Dies kommt aus Gleichung (4.22b) des Papers 'Stochastic quantization and the tunneling problem'.
+
+In den Zeilen 113-150 passieren Stabilitätschecks, die momentan etwas ausrangiert sind, da sie noch aus dem alten Manual sind und nun entweder falsch implementiert sind oder anders sein müssen(?). Jedenfalls würden sie wenn aktiv das $\Delta \tau$ sofort auf null runterregulieren.
+
+In Zeile 155 wird eine Work-Group synchronisiert. Es sollte wahrscheinlich zur Sicherheit noch einen solchen Call in den Zeilen 145 und 151 geben.
 \end{document}
