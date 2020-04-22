@@ -120,12 +120,12 @@ presets = {
     },
     "double_well": {
         "dtau": .001,
-        "Nt": 50,
-        "dt": 1.1,
+        "Nt": 100,
+        "dt": .1,
         "potID":3,
         "theoVal":3,
         "c":1.,
-        "filename":"tauDoubleWell.txt"
+        "filename":"tauDoubleWell2.txt"
     }
 }
 preset = presets[potential]
@@ -134,14 +134,15 @@ deltat = preset["dt"]
 deltatau = preset["dtau"]
 h = 1e-4
 parisi = 1
-entw = 50000000
+entw = 100
 potID = preset["potID"]
 c = preset["c"]
 strtval = preset["theoVal"]
 mdpoint = 50.
-device = 2
-rpf = 100
-intime = 1000
+device = 1
+rpf = 1
+intime = 1
+loops = 10000
 inputf = preset["filename"]
 inputf = "0"
 outputf = preset["filename"]
@@ -150,7 +151,7 @@ acco = 40
 
 dmax=strtval+.5*strtval
 
-p = subprocess.Popen(['./tauhost.o', str(n), str(deltat), str(deltatau), str(h), str(parisi), str(entw), str(potID), str(c), str(device), str(rpf), str(intime), inputf, outputf, str(acco)], stdout=subprocess.PIPE, bufsize=1)
+p = subprocess.Popen(['./tauhost.o', str(n), str(deltat), str(deltatau), str(h), str(parisi), str(entw), str(potID), str(c), str(device), str(rpf), str(intime), str(loops), inputf, outputf, str(acco)], stdout=subprocess.PIPE, bufsize=1)
 ev = threading.Event()
 queue = Queue()
 closeEv = threading.Event()

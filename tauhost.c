@@ -35,9 +35,10 @@ int main(int argc, char **argv) {
     const int dev           = atoi(argv[9]);
     const int fps           = atoi(argv[10]);
     const int inTime        = atoi(argv[11]);
-    const char * startFile  = argv[12];
-    const char * endFile    = argv[13];
-    const int endAccuracy   = atoi(argv[14]);
+    const int loops         = atoi(argv[12]);
+    const char * startFile  = argv[13];
+    const char * endFile    = argv[14];
+    const int endAccuracy   = atoi(argv[15]);
 //     printf("%d, %f, %f, %f\n", LIST_SIZE, deltat, deltatau, h);
     int recSimlgth;
     
@@ -48,7 +49,7 @@ int main(int argc, char **argv) {
     double *newf    = (double*)malloc(sizeof(double)*LIST_SIZE);
     double *newfh   = (double*)malloc(sizeof(double)*LIST_SIZE);
     
-    double *rand1   = (double*)malloc(sizeof(double)*LIST_SIZE);
+    unsigned long *rand1   = (unsigned long*)malloc(sizeof(unsigned long)*LIST_SIZE);
     
     int stable = 1;
     
@@ -88,9 +89,11 @@ int main(int argc, char **argv) {
             fsum[i] = 0;
             fhsum[i] = h;
             
-            v1 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
-            v2 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
-            rand1[i] = cos(2.*3.14*v2)*sqrt(-2.*log(v1));
+            rand1[i] = (unsigned long)abs(rand());
+//             rand1[i] = (unsigned long)abs(rand());
+//             v1 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
+//             v2 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
+//             rand1[i] = cos(2.*3.14*v2)*sqrt(-2.*log(v1));
             
             recSimlgth = 0;
         }
@@ -137,9 +140,10 @@ int main(int argc, char **argv) {
                     
                     
                     
-                    v1 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
-                    v2 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
-                    rand1[i] = cos(2.*3.14*v2)*sqrt(-2.*log(v1));
+//                     v1 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
+//                     v2 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
+//                     rand1[i] = cos(2.*3.14*v2)*sqrt(-2.*log(v1));
+                    rand1[i] = (unsigned long)abs(rand());
                     
                     length=0;
                 }
@@ -249,7 +253,7 @@ int main(int argc, char **argv) {
 //     printf("Parallel compute units: %d\n", maxComputeUnits);
     
     abc = clGetDeviceInfo(*device0, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &maxWorkGrSize, NULL);
-//     printf("Max work group size: %d\n", maxWorkGrSize);
+//     printf("Max work group size: %ld\n", maxWorkGrSize);
     
     // Create an OpenCL context
     cl_context context = clCreateContext( NULL, 1, device0, NULL, NULL, &ret);
@@ -258,10 +262,10 @@ int main(int argc, char **argv) {
     cl_command_queue command_queue = clCreateCommandQueue(context, *device0, 0, &ret);
  
     // Create memory buffers on the device for each vector 
-    cl_mem f_mem_obj = clCreateBuffer(context, CL_MEM_READ_ONLY, 
+    cl_mem f_mem_obj = clCreateBuffer(context, CL_MEM_READ_WRITE, 
             LIST_SIZE * sizeof(double), NULL, &ret);
     
-    cl_mem fh_mem_obj = clCreateBuffer(context, CL_MEM_READ_ONLY,
+    cl_mem fh_mem_obj = clCreateBuffer(context, CL_MEM_READ_WRITE,
             LIST_SIZE * sizeof(double), NULL, &ret);
     
     cl_mem nf_mem_obj = clCreateBuffer(context, CL_MEM_READ_WRITE, 
@@ -270,12 +274,12 @@ int main(int argc, char **argv) {
     cl_mem nfh_mem_obj = clCreateBuffer(context, CL_MEM_READ_WRITE,
             LIST_SIZE * sizeof(double), NULL, &ret);
     
-    cl_mem om_mem_obj = clCreateBuffer(context, CL_MEM_READ_ONLY,
+    cl_mem om_mem_obj = clCreateBuffer(context, CL_MEM_READ_WRITE,
             sizeof(double), NULL, &ret);
     
     
-    cl_mem r1_mem_obj = clCreateBuffer(context, CL_MEM_READ_ONLY,
-            LIST_SIZE * sizeof(double), NULL, &ret);
+    cl_mem r1_mem_obj = clCreateBuffer(context, CL_MEM_READ_WRITE,
+            LIST_SIZE * sizeof(unsigned long), NULL, &ret);
     
     
     cl_mem st_mem_obj = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
@@ -311,6 +315,9 @@ int main(int argc, char **argv) {
     cl_mem cC_mem_obj = clCreateBuffer(context, CL_MEM_READ_ONLY,
             sizeof(double), NULL, &ret);
     
+    cl_mem cL_mem_obj = clCreateBuffer(context, CL_MEM_READ_ONLY,
+            sizeof(int), NULL, &ret);
+    
     
  
     // Copy the lists x and xh to their respective memory buffers
@@ -331,7 +338,7 @@ int main(int argc, char **argv) {
     
     
     ret = clEnqueueWriteBuffer(command_queue, r1_mem_obj, CL_TRUE, 0, 
-                               LIST_SIZE * sizeof(double), rand1, 0, NULL, NULL);
+                               LIST_SIZE * sizeof(unsigned long), rand1, 0, NULL, NULL);
     
     ret = clEnqueueWriteBuffer(command_queue, st_mem_obj, CL_TRUE, 0, 
                                sizeof(int), &stable, 0, NULL, NULL);
@@ -365,6 +372,9 @@ int main(int argc, char **argv) {
     
     ret = clEnqueueWriteBuffer(command_queue, cC_mem_obj, CL_TRUE, 0, 
                                sizeof(double), &C, 0, NULL, NULL);
+    
+    ret = clEnqueueWriteBuffer(command_queue, cL_mem_obj, CL_TRUE, 0, 
+                               sizeof(int), &loops, 0, NULL, NULL);
     
  
     // Create a program from the kernel source
@@ -420,16 +430,21 @@ int main(int argc, char **argv) {
     ret = clSetKernelArg(kernel, 13, sizeof(cl_mem), (void *)&ch_mem_obj);
     ret = clSetKernelArg(kernel, 14, sizeof(cl_mem), (void *)&cPi_mem_obj);
     ret = clSetKernelArg(kernel, 15, sizeof(cl_mem), (void *)&cC_mem_obj);
- 
+    ret = clSetKernelArg(kernel, 16, sizeof(cl_mem), (void *)&cL_mem_obj);
+    
+    size_t maxKernWorkGrSize;
+    
+     ret = clGetKernelWorkGroupInfo(kernel, *device0, CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t), &maxKernWorkGrSize, NULL);
+//      printf("%ld\n", maxKernWorkGrSize);
     // Execute the OpenCL kernel on the list
-    size_t global_item_size = LIST_SIZE; // Process the entire lists
+    size_t global_item_size = LIST_SIZE+1; // Process the entire lists
     
     // Divide work items into groups of 64
 //     size_t local_item_size = 1;
 
-    size_t local_item_size = maxWorkGrSize;
+    size_t local_item_size = maxKernWorkGrSize;
     
-    if (maxWorkGrSize<global_item_size){
+    if (maxKernWorkGrSize<global_item_size){
         while(global_item_size%local_item_size!=0){
             local_item_size--;
         }
@@ -471,9 +486,9 @@ int main(int argc, char **argv) {
         
         for(i=0; i<LIST_SIZE; i++){
 //             printf("% -.10f ", x[i]);
-            v1 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
-            v2 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
-            rand1[i] = cos(2.*3.14*v2)*sqrt(-2.*log(v1));
+//             v1 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
+//             v2 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
+//             rand1[i] = cos(2.*3.14*v2)*sqrt(-2.*log(v1));
             
             if(i!=0&&(j)%fps==0){
                 
@@ -481,6 +496,7 @@ int main(int argc, char **argv) {
                     aver1=(fhsum[i]-fsum[i])/h/(double)(runs+1+recSimlgth);
                     aver2=(fhsum[i-1]-fsum[i-1])/h/(double)(runs+1+recSimlgth);
                     printf(" % -.20f |", (log(absol(aver1))-log(absol(aver2)))/deltat);
+//                     printf(" % -.20f |", f[i]);
                     
 //                     printf("% -.20f|", (log(absol((fh[i] - f[i])/h)) -log(absol((fh[i-1] - f[i-1])/h)))/deltat);
                 }
@@ -490,12 +506,13 @@ int main(int argc, char **argv) {
                     printf(" % -.20f |", (log(aver1)-log(aver2))/deltat);
 //                     printf("% -.20f |", aver1);
 //                     printf(" % -.20f |", omega);
-                    xcl[i] = clas((double)i*deltat, omega, potID);
+//                     xcl[i] = clas((double)i*deltat, omega, potID);
 //                     printf("% -.20f|", (fsum[i] + xcl[i])*(fsum[0] + xcl[0]));
                     
                     
                 }
                 if(i==LIST_SIZE-1){
+//                     printf(" % -.20f |", f[i]);
                     printf("% -.20f | ",dtautmp);
                    
                     printf("% -.2f\n", 100.*((double)j+1)/(double)frames);
@@ -575,19 +592,19 @@ int main(int argc, char **argv) {
                                            sizeof(int), &sameness, 0, NULL, NULL);
         }
         
-        v1 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
-        v2 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
-        omega += intConst(3)*sqrt(2.*dtautmp/deltat) *sin(2.*3.14*v2) *sqrt(-2.*log(v1));
-        
+//         v1 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
+//         v2 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
+//         omega += intConst(3)*sqrt(2.*dtautmp/deltat) *sin(2.*3.14*v2) *sqrt(-2.*log(v1));
+//         
         
         ret = clEnqueueWriteBuffer(command_queue, f_mem_obj, CL_TRUE, 0, LIST_SIZE * sizeof(double), f, 0, NULL, NULL);
         ret = clEnqueueWriteBuffer(command_queue, fh_mem_obj, CL_TRUE, 0, LIST_SIZE * sizeof(double), fh, 0, NULL, NULL);
         
         
-        ret = clEnqueueWriteBuffer(command_queue, om_mem_obj, CL_TRUE, 0, sizeof(double), &omega, 0, NULL, NULL);
+//         ret = clEnqueueWriteBuffer(command_queue, om_mem_obj, CL_TRUE, 0, sizeof(double), &omega, 0, NULL, NULL);
         
         
-        ret = clEnqueueWriteBuffer(command_queue, r1_mem_obj, CL_TRUE, 0, LIST_SIZE * sizeof(double), rand1, 0, NULL, NULL);
+//         ret = clEnqueueWriteBuffer(command_queue, r1_mem_obj, CL_TRUE, 0, LIST_SIZE * sizeof(double), rand1, 0, NULL, NULL);
         
         fflush(stdout);
         
@@ -636,6 +653,7 @@ int main(int argc, char **argv) {
     ret = clReleaseMemObject(ch_mem_obj);
     ret = clReleaseMemObject(cPi_mem_obj);
     ret = clReleaseMemObject(cC_mem_obj);
+    ret = clReleaseMemObject(cL_mem_obj);
     
     ret = clReleaseCommandQueue(command_queue);
     ret = clReleaseContext(context);
