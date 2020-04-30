@@ -1,0 +1,86 @@
+\documentclass[a4paper,parskip=half,10pt]{scrartcl}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{caption}
+\usepackage{subfigure}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{siunitx}
+\usepackage{isotope}
+\usepackage{tikz}
+\usepackage{mathrsfs}
+
+\usepackage[backend=bibtex,
+            natbib=true,
+            sorting=nyt,
+            url=false,
+            doi=false,
+            isbn=false,
+            maxbibnames=3,
+            maxcitenames=2,
+            date=year,
+            style=authoryear,% oder ext-authoryear
+            citestyle=authoryear-comp]{biblatex}
+            
+\addbibresource{Kiselev.bib}
+
+\begin{document}
+\section{Herleitung der klassischen Lösung}
+Ableitung Potential:
+\begin{equation}
+V'(x)=\lambda (x^2-\eta^2)\cdot 4x
+\end{equation}
+\begin{equation}
+m\ddot{x}=4x\lambda(x^2-\eta^2);    m\ddot{x}\dot{x}=4x\lambda (x^2-\eta^2)\dot{x}
+\end{equation}
+\begin{equation}
+\int \limits_{-\infty}^{t} m\ddot{x}\dot{x}dt=\int \limits_{-\infty}^{t}4\lambda x(x^2-\eta^2)\dot{x}dt
+\end{equation}
+nach Substitution und Lösung des Integrals erhält man:
+\begin{equation}
+\sqrt{\dfrac{m}{2}}\dfrac{1}{\sqrt{\lambda x^4-\lambda \eta^4-2\lambda\eta^2 x^2+2\lambda\eta^4}}\dot{x}=\pm 1
+\end{equation}
+Jetzt kann man nochmal integrieren:
+\begin{equation}
+\int \limits_{0}^{x}\dfrac{dx}{\sqrt{(x^2-\eta^2)^2}}=\pm \sqrt{\dfrac{2\lambda}{m}}(t-t_{0})
+\end{equation}
+Man erhält für die klassische Lösung:
+\begin{equation}
+x(t)=\eta \tanh\biggl(\mp \eta \sqrt{\dfrac{2\lambda}{m}}(t-t_{0}\biggr)
+\end{equation}
+Für die Integrationskonstante erhalten wir:
+\begin{align}
+\int \limits_{-\infty}^{\infty}\biggl(\dfrac{\partial x}{\partial t_{0}}\biggr)^2dt&=\int \limits_{-\infty}^{\infty}\biggl(\eta(1-\tanh^2)\biggl(-\eta \sqrt{\dfrac{2\lambda}{m}}\biggr)\biggr)^2dt\\
+&=\eta^3\biggl(\dfrac{2\lambda}{m}\biggr)^{3/2}\dfrac{4}{3}
+\end{align}
+\section{Variation}
+\begin{align}
+\dfrac{\delta^{2}S_{E}}{\delta x^{2}} f &= \Bigl\lbrack \dfrac{d}{d\epsilon}\Bigl(\dfrac{\partial L}{\partial x}(x+\epsilon f,\dot{x}+\epsilon \dot{f},t)-\dfrac{d}{dt}\Bigl(\dfrac{\partial L}{\partial \dot{x}}(x+\epsilon f, \dot{x}+\epsilon \dot{f},t)\Bigr)\Bigr)\Bigr\rbrack_{\epsilon=0} \\
+&=\Bigl\lbrack \dfrac{\partial^2 L}{\partial x^2}(x+\epsilon f)\cdot f + \dfrac{\partial^2 L}{\partial x \partial \dot{x}}(x+\epsilon f) \cdot \dot{f} - \dfrac{d}{dt}\dfrac{\partial^2 L}{\partial \dot{x}\partial x}(\dot{x}+\epsilon \dot{f})\cdot f-\dfrac{d}{dt}\dfrac{\partial^2 L}{\partial \dot{x}^2}(\dot{x}+\epsilon \dot{f})\cdot \dot{f}\Bigr\rbrack_{\epsilon=0}\\
+&=\dfrac{\partial^2 L}{\partial x^2}f-f\dfrac{d}{dt}\dfrac{\partial^2 L}{\partial x \partial \dot{x}}-f''\dfrac{\partial^2 L}{\partial \dot{x}^2}-f'\dfrac{d}{dt}\dfrac{\partial^2 L}{\partial \dot{x}^2}
+\end{align}
+Für die Fluktuation f erhalten wir:
+\begin{equation}
+\dfrac{f_{i+1}^{n}-f_{i}^{n}}{\Delta t}=V''(\bar{x}(n\cdot \Delta t,\omega_{i}))f_{i}^{n}-m\Bigl(\dfrac{f_{i}^{n+1}+f_{i}^{n-1}-2f_{i}^{n}}{\Delta t^2}\Bigr)+\eta_{f_{i}^{n}}
+\end{equation}
+\begin{equation}
+f_{i+1}^{n}= f_{i}^{n}+f_{i}^{n}V''(\bar{x}(n\cdot \Delta t, \omega_{i}))\Delta \tau-m\dfrac{\Delta\tau}{\Delta t^2}(f_{i}^{n+1}+f_{i}^{n-1}-2f_{i}^{n})+\Delta\tau\eta_{f_{i}^{n}}
+\end{equation}
+
+
+
+\section{Vergleichswerte für die Energielücke}
+In dem Paper \cite{KISELEV1992454} finden wir für die Energielücke:
+\begin{equation}
+\Delta_{n}=\biggl(\dfrac{2}{\pi}\biggr)^{1/2}\omega \dfrac{1}{n!}\biggl(\dfrac{n+\dfrac{1}{2}}{e}\biggr)^{n+1/2}exp[-W(E_{n})]
+\end{equation}
+mit
+\begin{equation}
+ W(E_{n})=\int \limits_{-b}^{b} dx\lbrace 2[V(x)-E_{n}]\rbrace^{1/2}
+ \end{equation} 
+Dabei erhalten wir für einen negativen Exponenten bei der e-Funktion leider nur eine imaginäre Lösung. Kann es sein, dass das Minuszeichen falsch ist?
+\pagebreak
+\printbibliography[title={Literaturverzeichnis}]
+\end{document}
