@@ -124,10 +124,10 @@ __kernel void time_dev(__global double *f,
 //             }
             
             if (isinf((float)newf[i])==1||isnan((float)newf[i])==1||isinf((float)newfh[i])==1||isnan((float)newfh[i])==1){
-//                 newf[i] = f[i];
-//                 newfh[i] = fh[i];
-                newf[i] = 0;
-                newfh[i] = h;
+                newf[i] = f[i];
+                newfh[i] = fh[i];
+//                 newf[i] = 0;
+//                 newfh[i] = h;
 //                 *stable=-1;
             }
             if (newf[i]==newfh[i]&&i!=0&&i!=N-1){
