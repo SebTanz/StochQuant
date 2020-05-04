@@ -23,7 +23,7 @@ double clas(double a, double w, int pot);
 
 int main(int argc, char **argv) {
     // Create the two input vectors
-    
+//     printf("Hello");
     const int LIST_SIZE     = atoi(argv[1]);
     const double deltat     = atof(argv[2]);
     const double deltatau   = atof(argv[3]);
@@ -43,16 +43,19 @@ int main(int argc, char **argv) {
     int recSimlgth;
     
     double omega;
+    double hbar = 1.;
+    int arlgth = 1;
     
     double *f       = (double*)malloc(sizeof(double)*LIST_SIZE);
     double *fh      = (double*)malloc(sizeof(double)*LIST_SIZE);
     double *newf    = (double*)malloc(sizeof(double)*LIST_SIZE);
     double *newfh   = (double*)malloc(sizeof(double)*LIST_SIZE);
     
-    unsigned long *rand1   = (unsigned long*)malloc(sizeof(unsigned long)*LIST_SIZE);
+    unsigned long *rand1   = malloc(sizeof(unsigned long)*LIST_SIZE);
     
     int stable = 1;
-    
+    int k=1;
+    int i;
     double dtautmp = deltatau;
     
     int lrgEl = 0;
@@ -62,32 +65,41 @@ int main(int argc, char **argv) {
     
     double v1;
     double v2;
+    double favg[LIST_SIZE];
+    double fhavg[LIST_SIZE];
+    double xclavg[LIST_SIZE];
     
-    double fsum [LIST_SIZE];
-    double fhsum [LIST_SIZE];
+    double **fsum = malloc(LIST_SIZE*sizeof(*fsum));
+    double **fhsum = malloc(LIST_SIZE*arlgth*sizeof(*fhsum));
+    double **xcl = malloc(LIST_SIZE*arlgth*sizeof(*xcl));
+    for(i=0; i<LIST_SIZE; i++){
+        fsum[i] = malloc(arlgth*sizeof(*fsum[i]));
+        fhsum[i] = malloc(arlgth*sizeof(*fhsum[i]));
+        xcl[i] = malloc(arlgth*sizeof(*xcl[i]));
+    }
     
-    double xcl [LIST_SIZE];
     
-    
-    int i;
     FILE *fp;
     char *source_str;
     size_t source_size;
+    
     
     v1 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
     v2 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
     omega = sqrt(2.*deltatau/deltat) *sin(2.*3.14*v2) *sqrt(-2.*log(v1))+30.;
     
-    
+//     printf("Hello");
     if(strcmp(startFile, "0")==0){
 //         printf("no file !");
         
         
         for(i = 0; i < LIST_SIZE; i++) {
             
-            
-            fsum[i] = 0;
-            fhsum[i] = h;
+            for (k=0; k<arlgth;k++){
+                
+                fsum[i][k] = 0;
+                fhsum[i][k] = h;
+            }
             
             rand1[i] = (unsigned long)abs(rand());
 //             rand1[i] = (unsigned long)abs(rand());
@@ -114,7 +126,6 @@ int main(int argc, char **argv) {
         int length = 0;
         int strsize = 0;
         while(fgets(line, sizeof(line), fp)){
-//             printf("%s",line);
             
             if (line[0]=='\n'){
                 char litstr[length];
@@ -122,27 +133,20 @@ int main(int argc, char **argv) {
                     litstr[n] = string[n];
                 if(i==LIST_SIZE){
                     recSimlgth = atoi(litstr);
-//                     printf("%d\n",recSimlgth);
                 }
                 if(i==LIST_SIZE+1){
                     
                     dtautmp = atof(litstr);
                     if(dtautmp>deltatau)
                         dtautmp=deltatau;
-//                     printf("%d\n",recSimlgth);
                 }
                 if (i<LIST_SIZE){
                     token = strtok(litstr, "|");
-                    fsum[i] = (double)atof(token);
+                    favg[i] = (double)atof(token);
                     token = strtok(NULL, "|");
-                    fhsum[i] = (double)atof(token);
-//                     printf("%f|%f\n",fsum[i],fhsum[i]);
-                    
-                    
-                    
-//                     v1 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
-//                     v2 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
-//                     rand1[i] = cos(2.*3.14*v2)*sqrt(-2.*log(v1));
+                    fhavg[i] = (double)atof(token);
+                    token = strtok(NULL, "|");
+                    xclavg[i] = (double)atof(token);
                     rand1[i] = (unsigned long)abs(rand());
                     
                     length=0;
@@ -172,21 +176,13 @@ int main(int argc, char **argv) {
     }
     
     for (i=0; i<LIST_SIZE; i++){
-        if (recSimlgth==0){
-            
 //             f[i] = exp((double)i*deltat) - clas((double)i*deltat, omega, potID);
 //             f[i] = exp((double)i*deltat);
-            f[i] = 1;
-            fh[i] = f[i]+h;
-            newf[i] = f[i];
-            newfh[i] = fh[i];
-        }
-        else{
-            f[i] = fsum[i]/(double)recSimlgth;
-            fh[i] = fhsum[i]/(double)recSimlgth;
-            newf[i] = f[i];
-            newfh[i] = fh[i];
-        }
+        f[i] = 1;
+        fh[i] = f[i]+h;
+        newf[i] = f[i];
+        newfh[i] = fh[i];
+        
         
         
     }
@@ -475,6 +471,9 @@ int main(int argc, char **argv) {
     int outp=0;
     double aver1;
     double aver2;
+    double avg [LIST_SIZE];
+    double avgh [LIST_SIZE];
+    double avgxcl [LIST_SIZE];
     
     int runs = 0;
     int nancount=0;
@@ -485,34 +484,23 @@ int main(int argc, char **argv) {
         ret = clFinish(command_queue);
         
         for(i=0; i<LIST_SIZE; i++){
-//             printf("% -.10f ", x[i]);
-//             v1 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
-//             v2 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
-//             rand1[i] = cos(2.*3.14*v2)*sqrt(-2.*log(v1));
             
             if(i!=0&&(j)%fps==0){
                 
                 if (parisi==1){
-                    aver1=(fhsum[i]-fsum[i])/h/(double)(runs+1+recSimlgth);
-                    aver2=(fhsum[i-1]-fsum[i-1])/h/(double)(runs+1+recSimlgth);
+                    aver1=(fhavg[i]-favg[i])/h;
+                    aver2=(fhavg[i-1]-favg[i-1])/h;
                     printf(" % -.20f |", (log(absol(aver1))-log(absol(aver2)))/deltat);
-//                     printf(" % -.20f |", f[i]);
-                    
-//                     printf("% -.20f|", (log(absol((fh[i] - f[i])/h)) -log(absol((fh[i-1] - f[i-1])/h)))/deltat);
                 }
                 else{
-                    aver1=fsum[i]*(fsum[0]/(double)(runs+1+recSimlgth));
-                    aver2=fsum[i-1]*(fsum[0]/(double)(runs+1+recSimlgth));
-                    printf(" % -.20f |", (log(aver1)-log(aver2))/deltat);
-//                     printf("% -.20f |", aver1);
-//                     printf(" % -.20f |", omega);
-//                     xcl[i] = clas((double)i*deltat, omega, potID);
-//                     printf("% -.20f|", (fsum[i] + xcl[i])*(fsum[0] + xcl[0]));
                     
+                    
+                    aver1=(favg[i]+xclavg[i])*(favg[0]+xclavg[0]);
+                    aver2=(favg[i-1]+xclavg[i-1])*(favg[0]+xclavg[0]);
+                    printf(" % -.20f |", hbar*(log(absol(aver1))-log(absol(aver2)))/deltat);
                     
                 }
                 if(i==LIST_SIZE-1){
-//                     printf(" % -.20f |", f[i]);
                     printf("% -.20f | ",dtautmp);
                    
                     printf("% -.2f\n", 100.*((double)j+1)/(double)frames);
@@ -520,15 +508,6 @@ int main(int argc, char **argv) {
             }
             
         }
-        
-        
-        //Calculate omega
-        
-        
-        
-        // Read the memory buffer x, xh on the device to the local variable x, xh
-        
-        
         
         
         ret = clEnqueueReadBuffer(command_queue, st_mem_obj, CL_TRUE, 0, 
@@ -539,13 +518,14 @@ int main(int argc, char **argv) {
                                         LIST_SIZE * sizeof(double), f, 0, NULL, NULL);
             ret = clEnqueueReadBuffer(command_queue, nfh_mem_obj, CL_TRUE, 0, 
                                         LIST_SIZE * sizeof(double), fh, 0, NULL,NULL);
+            ret = clEnqueueReadBuffer(command_queue, om_mem_obj, CL_TRUE, 0, 
+                                        LIST_SIZE * sizeof(double), &omega, 0, NULL,NULL);
             if(j>=inTime){
                 runs+=1;
                 for(i=0; i<LIST_SIZE; i++){
-                    xcl[i] = clas((double)i*deltat, omega, potID);
-//                     printf("% -.20f", xcl[i]);
-                    fsum[i] += f[i];
-                    fhsum[i] += fh[i];
+                    favg[i]+=(f[i]-favg[i])/(runs+recSimlgth+1);
+                    fhavg[i]+=(fh[i]-fhavg[i])/(runs+recSimlgth+1);
+                    xclavg[i]+=(clas((double)i*deltat, omega, 3)-xclavg[i])/(runs+recSimlgth+1);
                 }
             }
             
@@ -559,7 +539,7 @@ int main(int argc, char **argv) {
             
         }
         else{
-//             printf("unstable %d\n", stable);
+            printf("unstable %d\n", stable);
             ret = clEnqueueReadBuffer(command_queue, dt_mem_obj, CL_TRUE, 0, 
                                         sizeof(double), &dtautmp, 0, NULL, NULL);
 //             ret = clEnqueueReadBuffer(command_queue, nf_mem_obj, CL_TRUE, 0, 
@@ -592,24 +572,17 @@ int main(int argc, char **argv) {
                                            sizeof(int), &sameness, 0, NULL, NULL);
         }
         
-//         v1 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
-//         v2 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
-//         omega += intConst(3)*sqrt(2.*dtautmp/deltat) *sin(2.*3.14*v2) *sqrt(-2.*log(v1));
 //         
         
         ret = clEnqueueWriteBuffer(command_queue, f_mem_obj, CL_TRUE, 0, LIST_SIZE * sizeof(double), f, 0, NULL, NULL);
         ret = clEnqueueWriteBuffer(command_queue, fh_mem_obj, CL_TRUE, 0, LIST_SIZE * sizeof(double), fh, 0, NULL, NULL);
+        ret = clEnqueueWriteBuffer(command_queue, om_mem_obj, CL_TRUE, 0, sizeof(double), &omega, 0, NULL, NULL);
         
         
-//         ret = clEnqueueWriteBuffer(command_queue, om_mem_obj, CL_TRUE, 0, sizeof(double), &omega, 0, NULL, NULL);
-        
-        
-//         ret = clEnqueueWriteBuffer(command_queue, r1_mem_obj, CL_TRUE, 0, LIST_SIZE * sizeof(double), rand1, 0, NULL, NULL);
         
         fflush(stdout);
         
     }
-//     printf("%d\n",recSimlgth);
     
     if(strcmp(endFile, "0")!=0){
         fp = fopen(endFile, "w");
@@ -619,8 +592,10 @@ int main(int argc, char **argv) {
         }
         
         for (i=0; i<LIST_SIZE; i++){
-//             printf("%f|%f\n",fsum[i],fhsum[i]);
-            fprintf(fp, "% -*a|% -*a\n",endAccuracy,fsum[i], endAccuracy, fhsum[i]);
+            for(k=0; k<arlgth; k++){
+                fprintf(fp, "% -*a|% -*a|% -*a|",endAccuracy, favg[i], endAccuracy, fhavg[i], endAccuracy, xclavg[i]);
+            }
+            fprintf(fp,"\n");
             
         }
         fprintf(fp, "%*d|N\n", endAccuracy, runs+1+recSimlgth);
@@ -657,6 +632,9 @@ int main(int argc, char **argv) {
     
     ret = clReleaseCommandQueue(command_queue);
     ret = clReleaseContext(context);
+    free(fsum);
+    free(fhsum);
+    free(xcl);
     free(f);
     free(fh);
     free(newf);
@@ -690,13 +668,19 @@ int min(int m, int n){
 }
 double intConst(int potID){
     
-    return (double)3./sqrt(2.);
+    double eta = 10.;
+    double lbda = .5;
+    double m = 1.;
+    return 1./sqrt((pow(eta,3)*pow((lbda/m),(3./2.))*sqrt(2.)*4./3.));
     
 }
 double doubleWellSol(double t, double t0){
 //     float x0=1.;
     
-    return (double)tanh((t-t0)/(double)sqrt((float)2));
+    double m = 1.;
+    double eta = 10.;
+    double lbda = .5;
+    return eta * tanh((eta*sqrt((2.*lbda/m))*(t-t0)));
     
 }
 double clas(double a, double w, int pot){
