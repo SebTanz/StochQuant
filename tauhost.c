@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
     
     v1 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
     v2 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
-    omega = sqrt(2.*deltatau/deltat) *sin(2.*3.14*v2) *sqrt(-2.*log(v1))+30.;
+    omega = sqrt(2.*deltatau) *sin(2.*3.14*v2) *sqrt(-2.*log(v1));
     
     if(strcmp(startFile, "0")==0){
         for(i=0;i<LIST_SIZE;i++){
@@ -157,9 +157,11 @@ int main(int argc, char **argv) {
     double T = LIST_SIZE*deltat;
     
     for (i=0; i<LIST_SIZE; i++){
-        f[i]=1;
+        v1 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
+        v2 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
+        f[i]=sqrt(2.*deltatau) *cos(2.*3.14*v2) *sqrt(-2.*log(v1));;
 //         f[i] = eta * pow((exp((double)i*deltat-T/2.)+1)/(exp(-T/2.)+1),eta)-clas((double)i*deltat, omega, 3);
-        fh[i] = f[i]+h;
+        fh[i] = sqrt(2.*deltatau) *cos(2.*3.14*v2) *sqrt(-2.*log(v1));
         newf[i] = f[i];
         newfh[i] = fh[i];
         rand1[i] = (unsigned long)abs(rand());
@@ -476,13 +478,17 @@ int main(int argc, char **argv) {
                     
                     aver1=(favg[i]+xclavg[i])*(favg[0]+xclavg[0]);
                     aver2=(favg[i-1]+xclavg[i-1])*(favg[0]+xclavg[0]);
+                    aver1 = (f[i]+clas((double)i*deltat, omega, 3))*(f[0]+clas(0., omega, 3));
+                    aver2 = (f[i-1]+clas((double)(i-1)*deltat, omega, 3))*(f[0]+clas(0., omega, 3));
 //                     printf(" % -.20f |", f[i]);
-//                     printf(" % -.20f |", hbar*(log(absol(aver1))-log(absol(aver2)))/deltat);
+//                     printf(" % -.20f |", hbar*(log(absol(aver1))-log(absol(aver2)))/deltat);         
+                    
                     printf(" % -.20f |", hbar*(log(absol(xavg[i]))-log(absol(xavg[i-1])))/deltat);
                     
                 }
                 if(i==LIST_SIZE-1){
                     printf("% -.20f | ",dtautmp);
+                    
                    
                     printf("% -.2f\n", 100.*((double)j+1)/(double)frames);
                 }
@@ -500,7 +506,9 @@ int main(int argc, char **argv) {
             ret = clEnqueueReadBuffer(command_queue, nfh_mem_obj, CL_TRUE, 0, 
                                         LIST_SIZE * sizeof(double), fh, 0, NULL,NULL);
             ret = clEnqueueReadBuffer(command_queue, om_mem_obj, CL_TRUE, 0, 
-                                        LIST_SIZE * sizeof(double), &omega, 0, NULL,NULL);
+                                        sizeof(double), &omega, 0, NULL,NULL);
+//             ret = clFinish(command_queue);
+//             printf("% -.20f | ", omega);
             if(j>=inTime){
                 runs+=1;
                 zero = f[0]+clas(0., omega, 3);

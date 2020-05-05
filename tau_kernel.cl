@@ -1,4 +1,6 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
+#pragma OPENCL EXTENSION cl_amd_printf : enable
+#pragma OPENCL EXTENSION cl_intel_printf : enable
 
 double doubleWellSol(double t, double t0);
 double doubleWellPot(double a);
@@ -46,7 +48,7 @@ __kernel void time_dev(__global double *f,
     double c = *C;
     int loops = *Loops;
     double newomega;
-    int boundaryConditions = 1;
+    int boundaryConditions = 2;
     double dw;
     
     for(int j=0; j<loops; j++){
@@ -58,6 +60,9 @@ __kernel void time_dev(__global double *f,
         
         if(i==0){
             dw = c*(double)sqrt((float)(2.*deltatau/deltat))*random(rand1, i);
+            if(boundaryConditions == 2){
+                newf[i] = boundary(-1, potID);
+            }
             if(boundaryConditions == 1){
                 newf[i] = f[0]+m*deltatau*(f[1]+boundary(-1, potID)-clas(-1.*deltat, om, potID)-2*f[0])/(double)pown((float)deltat,2)-ddPot(clas((double)i*deltat, om, potID), potID) * f[0] *deltatau + dw;
                 
@@ -80,8 +85,11 @@ __kernel void time_dev(__global double *f,
         }
         if(i==N-1){
             dw = c*(double)sqrt((float)(2.*deltatau/deltat))*random(rand1, i);
+            if(boundaryConditions == 2){
+                newf[i] = boundary(1, potID);
+            }
             if(boundaryConditions == 1){
-                newf[i] = f[N-1]+m*deltatau*(boundary(1, potID)-clas((double)N*deltat, om, potID)+f[N-2]-2*f[N-1])/(double)pown((float)deltat,2)+ddPot(clas((double)i*deltat, om, potID), potID)* f[N-1] *deltatau + dw;
+                newf[i] = f[N-1]+m*deltatau*(boundary(1, potID)-clas((double)N*deltat, om, potID)+f[N-2]-2*f[N-1])/(double)pown((float)deltat,2)-ddPot(clas((double)i*deltat, om, potID), potID)* f[N-1] *deltatau + dw;
             
                 newfh[i] = fh[N-1]+m*deltatau*(boundary(1, potID)-clas((double)N*deltat, om, potID)+fh[N-2]-2*fh[N-1])/(double)pown((float)deltat,2) -ddPot(clas((double)i*deltat, om, potID), potID)* fh[N-1] *deltatau + dw;
             }
@@ -102,6 +110,7 @@ __kernel void time_dev(__global double *f,
             dw = c*(double)sqrt((float)(2.*deltatau))*random(rand1, i);
             
             newomega = om + intConst(3)*dw;
+//             printf("%f\n", newomega);
         }
         if(i<N-1&&i>0){
             dw = c*(double)sqrt((float)(2.*deltatau/deltat))*random(rand1, i);
@@ -124,10 +133,10 @@ __kernel void time_dev(__global double *f,
 //             }
             
             if (isinf((float)newf[i])==1||isnan((float)newf[i])==1||isinf((float)newfh[i])==1||isnan((float)newfh[i])==1){
-                newf[i] = f[i];
-                newfh[i] = fh[i];
-//                 newf[i] = 0;
-//                 newfh[i] = h;
+//                 newf[i] = f[i];
+//                 newfh[i] = fh[i];
+                newf[i] = 0;
+                newfh[i] = 0;
 //                 *stable=-1;
             }
             if (newf[i]==newfh[i]&&i!=0&&i!=N-1){
@@ -155,9 +164,15 @@ __kernel void time_dev(__global double *f,
                 f[i] = newf[i];
                 fh[i] = newfh[i];
             }
+            else{
+                if(i==N-1){
+//                     printf("%f\n",newf[i]);
+                }
+            }
         }
         else{
             *omega = newomega;            
+//             printf("%f\n",*omega);
         }
         barrier(CLK_GLOBAL_MEM_FENCE);
         if(*stable!=1){
