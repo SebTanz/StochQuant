@@ -50,6 +50,7 @@ __kernel void time_dev(__global double *f,
     double newomega;
     int boundaryConditions = 2;
     double dw;
+    double max = 10;
     
     for(int j=0; j<loops; j++){
         om = *omega;
@@ -61,12 +62,12 @@ __kernel void time_dev(__global double *f,
         if(i==0){
             dw = c*(double)sqrt((float)(2.*deltatau/deltat))*random(rand1, i);
             if(boundaryConditions == 2){
-                newf[i] = boundary(-1, potID);
+                newf[i] = 0;
             }
             if(boundaryConditions == 1){
-                newf[i] = f[0]+m*deltatau*(f[1]+boundary(-1, potID)-clas(-1.*deltat, om, potID)-2*f[0])/(double)pown((float)deltat,2)-ddPot(clas((double)i*deltat, om, potID), potID) * f[0] *deltatau + dw;
+                newf[i] = f[0]+m*deltatau*(f[1]-2*f[0])/(double)pown((float)deltat,2)-ddPot(clas((double)i*deltat, om, potID), potID) * f[0] *deltatau + dw;
                 
-                newfh[i] = fh[0]+m*deltatau*(fh[1]+boundary(-1, potID)-clas(-1.*deltat, om, potID)-2*fh[0])/(double)pown((float)deltat,2) -ddPot(clas((double)i*deltat, om, potID), potID)* fh[0] *deltatau + dw ;
+                newfh[i] = fh[0]+m*deltatau*(fh[1]-2*fh[0])/(double)pown((float)deltat,2) -ddPot(clas((double)i*deltat, om, potID), potID)* fh[0] *deltatau + dw ;
                 
             }
             if(boundaryConditions == 0){
@@ -86,12 +87,12 @@ __kernel void time_dev(__global double *f,
         if(i==N-1){
             dw = c*(double)sqrt((float)(2.*deltatau/deltat))*random(rand1, i);
             if(boundaryConditions == 2){
-                newf[i] = boundary(1, potID);
+                newf[i] = 0;
             }
             if(boundaryConditions == 1){
-                newf[i] = f[N-1]+m*deltatau*(boundary(1, potID)-clas((double)N*deltat, om, potID)+f[N-2]-2*f[N-1])/(double)pown((float)deltat,2)-ddPot(clas((double)i*deltat, om, potID), potID)* f[N-1] *deltatau + dw;
+                newf[i] = f[N-1]+m*deltatau*(f[N-2]-2*f[N-1])/(double)pown((float)deltat,2)-ddPot(clas((double)i*deltat, om, potID), potID)* f[N-1] *deltatau + dw;
             
-                newfh[i] = fh[N-1]+m*deltatau*(boundary(1, potID)-clas((double)N*deltat, om, potID)+fh[N-2]-2*fh[N-1])/(double)pown((float)deltat,2) -ddPot(clas((double)i*deltat, om, potID), potID)* fh[N-1] *deltatau + dw;
+                newfh[i] = fh[N-1]+m*deltatau*(fh[N-2]-2*fh[N-1])/(double)pown((float)deltat,2) -ddPot(clas((double)i*deltat, om, potID), potID)* fh[N-1] *deltatau + dw;
             }
             if(boundaryConditions == 0){
                 newf[i] = f[N-1]+m*deltatau*(f[0]+f[N-2]-2*f[N-1])/(double)pown((float)deltat,2)+ddPot(clas((double)i*deltat, om, potID), potID)* f[N-1] *deltatau + dw;
@@ -114,8 +115,10 @@ __kernel void time_dev(__global double *f,
         }
         if(i<N-1&&i>0){
             dw = c*(double)sqrt((float)(2.*deltatau/deltat))*random(rand1, i);
+//             printf("%f ",dw);
             
             newf[i] = f[i]+m*deltatau*(f[i+1]+f[i-1]-2*f[i])/(double)pown((float)deltat,2)-ddPot(clas((double)i*deltat, om, potID), potID) * f[i] *deltatau + dw;
+            
             
             newfh[i] = fh[i]+m*deltatau*(fh[i+1]+fh[i-1]-2*fh[i])/(double)pown((float)deltat,2) -ddPot(clas((double)i*deltat, om, potID), potID)* fh[i] *deltatau + dw;
         }
@@ -132,12 +135,22 @@ __kernel void time_dev(__global double *f,
 //                 }
 //             }
             
+            if(newf[i]>max){
+                newf[i] = max;
+                newfh[i] = max;
+                
+            }
+            if(newf[i]<-max){
+                newf[i] = -max;
+                newfh[i] = -max;
+                
+            }
             if (isinf((float)newf[i])==1||isnan((float)newf[i])==1||isinf((float)newfh[i])==1||isnan((float)newfh[i])==1){
-//                 newf[i] = f[i];
-//                 newfh[i] = fh[i];
-                newf[i] = 0;
-                newfh[i] = 0;
-//                 *stable=-1;
+                newf[i] = max;
+                newfh[i] = max;
+//                 newf[i] = 0;
+//                 newfh[i] = 0;
+                *stable=-1;
             }
             if (newf[i]==newfh[i]&&i!=0&&i!=N-1){
                 newfh[i]=newf[i]+h;

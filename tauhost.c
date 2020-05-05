@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
     
     v1 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
     v2 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
-    omega = sqrt(2.*deltatau) *sin(2.*3.14*v2) *sqrt(-2.*log(v1));
+    omega = sqrt(2.*deltatau) *sin(2.*3.14*v2) *sqrt(-2.*log(v1))+deltat*(double)LIST_SIZE/2.;
     
     if(strcmp(startFile, "0")==0){
         for(i=0;i<LIST_SIZE;i++){
@@ -472,7 +472,8 @@ int main(int argc, char **argv) {
                     aver2=(fhavg[i-1]-favg[i-1])/h;
                     printf(" % -.20f |", (log(absol(aver1))-log(absol(aver2)))/deltat);
 //                     printf(" % -.20f |", f[i]);
-                }
+                } 
+                
                 else{
                     
                     
@@ -480,14 +481,14 @@ int main(int argc, char **argv) {
                     aver2=(favg[i-1]+xclavg[i-1])*(favg[0]+xclavg[0]);
                     aver1 = (f[i]+clas((double)i*deltat, omega, 3))*(f[0]+clas(0., omega, 3));
                     aver2 = (f[i-1]+clas((double)(i-1)*deltat, omega, 3))*(f[0]+clas(0., omega, 3));
-//                     printf(" % -.20f |", f[i]);
-//                     printf(" % -.20f |", hbar*(log(absol(aver1))-log(absol(aver2)))/deltat);         
+//                     printf(" % -.20f |", xavg[i]);
+//                     printf(" % -.20f |", (f[LIST_SIZE-1]+clas((double)(LIST_SIZE-1)*deltat, omega, 3)));         
                     
                     printf(" % -.20f |", hbar*(log(absol(xavg[i]))-log(absol(xavg[i-1])))/deltat);
                     
                 }
                 if(i==LIST_SIZE-1){
-                    printf("% -.20f | ",dtautmp);
+                    printf("% -.20f | ", dtautmp);
                     
                    
                     printf("% -.2f\n", 100.*((double)j+1)/(double)frames);
@@ -522,16 +523,16 @@ int main(int argc, char **argv) {
             }
             
 //             dtautmp=deltatau;
-            if(stabCnt>44){
-                stabCnt--;
-                dtautmp/=0.950;
+            if(stabCnt>100){
+                stabCnt = 0;
+                dtautmp = deltatau;
                 ret = clEnqueueWriteBuffer(command_queue, dt_mem_obj, CL_TRUE,   0,sizeof(double), &dtautmp, 0, NULL, NULL);
             }
             
             
         }
         else{
-            printf("unstable %d\n", stable);
+//             printf("unstable %d\n", stable);
             ret = clEnqueueReadBuffer(command_queue, dt_mem_obj, CL_TRUE, 0, 
                                         sizeof(double), &dtautmp, 0, NULL, NULL);
 //             ret = clEnqueueReadBuffer(command_queue, nf_mem_obj, CL_TRUE, 0, 
