@@ -44,7 +44,8 @@ class dataThread (threading.Thread):
                     if self.cE.isSet():
                         self.e.set()
             stdout.write("%6.2f" %self.perc+"%%| DeltaTau = %.2e"%self.dtau+"\r")
-        print("100.00%, "+str(time()-now)+" seconds")
+        stdout.write("100.00%"+"| DeltaTau = %.2e| "%self.dtau+"%.2f seconds\n"%(time()-now))
+        #print("100.00%, "+str(time()-now)+" seconds")
         self.proc.stdout.close()
         self.proc.wait()
 
@@ -119,34 +120,34 @@ presets = {
         "filename":"Quartic.txt"
     },
     "double_well": {
-        "dtau": .001,
+        "dtau": .1,
         "Nt": 100,
-        "dt": .1,
+        "dt": 1.,
         "potID":3,
-        "theoVal":3,
+        "theoVal":10,
         "c":1.,
-        "filename":"tauDoubleWell2.txt"
+        "filename":"tauDoubleWell4.txt"
     }
 }
 preset = presets[potential]
 n = preset["Nt"]
 deltat = preset["dt"]
 deltatau = preset["dtau"]
-h = 1e-4
-parisi = 1
-entw = 100
+h = 1e-5
+parisi = 0
+entw = 10000
 potID = preset["potID"]
 c = preset["c"]
 strtval = preset["theoVal"]
 mdpoint = 50.
 device = 1
 rpf = 1
-intime = 1
+intime = 0
 loops = 10000
 inputf = preset["filename"]
 inputf = "0"
 outputf = preset["filename"]
-#outputf = "0"
+outputf = "0"
 acco = 40
 
 dmax=strtval+.5*strtval
