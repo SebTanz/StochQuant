@@ -12,22 +12,23 @@ double intConst (int potID);
 double boundary(int rl, int pot);
 double absol(double a);
 double random(__global ulong * seed, int gid);
- 
+
+
 
 __kernel void time_dev(__global double *f,
-                       __global double *fh,
+                       __global double *x,
                        __global double *newf,
-                       __global double *newfh,
+                       __global double *newx,
                        __global double *omega,
                        __global ulong *rand1,
                        __global int *stable,
                        __constant double *deltaTau,
                        __global int *lrgEl,
                        __global double *lrgVl,
-                       __global int *sameness,
+                       __global int *initRun,
                        __constant int *LIST_SIZE,
                        __constant double *deltaT,
-                       __constant double *hPar,
+                       __global int *runs,
                        __constant int *potential,
                        __constant double *C,
                        __constant int *Loops
@@ -37,20 +38,19 @@ __kernel void time_dev(__global double *f,
     
     // Get the index of the current element
     int i = get_global_id(0);
-//     int N = get_global_size(0);
+    int M = get_global_size(0);
     int N = *LIST_SIZE;
     double deltatau = *deltaTau;
     double deltat = *deltaT;
     double om = *omega;
     double m = 1.;
-    double h = *hPar;
     int potID = *potential;
     double c = *C;
     int loops = *Loops;
     double newomega;
-    int boundaryConditions = 2;
+    int boundaryConditions = 1;
     double dw;
-    double max = 10;
+    double max = 1000;
     
     for(int j=0; j<loops; j++){
         om = *omega;
@@ -65,22 +65,15 @@ __kernel void time_dev(__global double *f,
                 newf[i] = 0;
             }
             if(boundaryConditions == 1){
-                newf[i] = f[0]+m*deltatau*(f[1]-2*f[0])/(double)pown((float)deltat,2)-ddPot(clas((double)i*deltat, om, potID), potID) * f[0] *deltatau + dw;
+                newf[i] = f[0]+m*deltatau*(f[1]+boundary(-1, potID)-clas(-1.*deltat, om, potID)-2*f[0])/(double)pown((float)deltat,2)-ddPot(clas((double)i*deltat, om, potID), potID) * f[0] *deltatau + dw;
                 
-                newfh[i] = fh[0]+m*deltatau*(fh[1]-2*fh[0])/(double)pown((float)deltat,2) -ddPot(clas((double)i*deltat, om, potID), potID)* fh[0] *deltatau + dw ;
                 
             }
             if(boundaryConditions == 0){
                 newf[i] = f[0]+m*deltatau*(f[1]+f[N-1]-2*f[0])/(double)pown((float)deltat,2)-ddPot(clas((double)i*deltat, om, potID), potID) * f[0] *deltatau + dw;
                 
-                newfh[i] = fh[0]+m*deltatau*(fh[1]+fh[N-1]-2*fh[0])/(double)pown((float)deltat,2) -ddPot(clas((double)i*deltat, om, potID), potID)* fh[0] *deltatau + dw ;
             }
             
-            
-//             newf[i] = f[0]+m*deltatau*(f[1]-f[0])/deltat-ddPot(clas((double)i*deltat, om, potID)+f[0], potID) * f[0] *deltatau + dw;
-//             newf[i] = boundary(-1, potID)-clas((double)i*deltat, om, potID) + dw;
-    //         newfh[i] = fh[0]+m*deltatau*(fh[1]-fh[0])/deltat -ddPot(clas((double)i*deltat, om, potID)+fh[0], potID)* fh[0] *deltatau + dw ;
-    //         newfh[i] = boundary(-1, potID)-clas((double)i*deltat, om, potID) + dw;
             
             
         }
@@ -90,28 +83,27 @@ __kernel void time_dev(__global double *f,
                 newf[i] = 0;
             }
             if(boundaryConditions == 1){
-                newf[i] = f[N-1]+m*deltatau*(f[N-2]-2*f[N-1])/(double)pown((float)deltat,2)-ddPot(clas((double)i*deltat, om, potID), potID)* f[N-1] *deltatau + dw;
+                newf[i] = f[N-1]+m*deltatau*(f[N-2]+boundary(1, potID)-clas((double)N*deltat, om, potID)-2*f[N-1])/(double)pown((float)deltat,2)-ddPot(clas((double)i*deltat, om, potID), potID)* f[N-1] *deltatau + dw;
             
-                newfh[i] = fh[N-1]+m*deltatau*(fh[N-2]-2*fh[N-1])/(double)pown((float)deltat,2) -ddPot(clas((double)i*deltat, om, potID), potID)* fh[N-1] *deltatau + dw;
             }
             if(boundaryConditions == 0){
                 newf[i] = f[N-1]+m*deltatau*(f[0]+f[N-2]-2*f[N-1])/(double)pown((float)deltat,2)+ddPot(clas((double)i*deltat, om, potID), potID)* f[N-1] *deltatau + dw;
             
-                newfh[i] = fh[N-1]+m*deltatau*(fh[0]+fh[N-2]-2*fh[N-1])/(double)pown((float)deltat,2) -ddPot(clas((double)i*deltat, om, potID), potID)* fh[N-1] *deltatau + dw;
             }
             
-//             newf[i] = f[N-1]+m*deltatau*(f[N-2]-f[N-1])/deltat+ddPot(clas((double)i*deltat, om, potID)+f[N-1], potID)* f[N-1] *deltatau + dw;
-//             newf[i] = boundary(1, potID)-clas((double)i*deltat, om, potID) + dw;
             
-//             newfh[i] = fh[N-1]+m*deltatau*(fh[N-2]-fh[N-1])/deltat -ddPot(clas((double)i*deltat, om, potID)+fh[N-1], potID)* fh[N-1] *deltatau + dw;
-//             newfh[i] = boundary(1, potID)-clas((double)i*deltat, om, potID) + dw;
                 
         }
         if(i==N){
-            dw = c*(double)sqrt((float)(2.*deltatau))*random(rand1, i);
             
+//             rand1[i]+=1;
+            dw = c*(double)sqrt((float)(2.*deltatau))*random(rand1, i);
+//                 printf("%f\n", dw);
             newomega = om + intConst(3)*dw;
-//             printf("%f\n", newomega);
+//                 if(rand1[i]>0)
+//             printf("%lu\n", rand1[i-1]);
+            
+            
         }
         if(i<N-1&&i>0){
             dw = c*(double)sqrt((float)(2.*deltatau/deltat))*random(rand1, i);
@@ -120,10 +112,15 @@ __kernel void time_dev(__global double *f,
             newf[i] = f[i]+m*deltatau*(f[i+1]+f[i-1]-2*f[i])/(double)pown((float)deltat,2)-ddPot(clas((double)i*deltat, om, potID), potID) * f[i] *deltatau + dw;
             
             
-            newfh[i] = fh[i]+m*deltatau*(fh[i+1]+fh[i-1]-2*fh[i])/(double)pown((float)deltat,2) -ddPot(clas((double)i*deltat, om, potID), potID)* fh[i] *deltatau + dw;
         }
             
-        
+//         if(i==15){
+//             for(int k=0; k<N+1; k++){
+//                 printf("%lu,", rand1[k]);
+//             }
+//             printf("%d, %d\n", i,N);
+//             
+//         }
         if(i<N){
 //             if(i==*lrgEl){
 //                 if(absol(newf[i]-f[i]-dw)>*lrgVl){
@@ -137,31 +134,18 @@ __kernel void time_dev(__global double *f,
             
             if(newf[i]>max){
                 newf[i] = max;
-                newfh[i] = max;
                 
             }
             if(newf[i]<-max){
                 newf[i] = -max;
-                newfh[i] = -max;
                 
             }
-            if (isinf((float)newf[i])==1||isnan((float)newf[i])==1||isinf((float)newfh[i])==1||isnan((float)newfh[i])==1){
+            if (isinf((float)newf[i])==1||isnan((float)newf[i])==1){
                 newf[i] = max;
-                newfh[i] = max;
 //                 newf[i] = 0;
-//                 newfh[i] = 0;
                 *stable=-1;
             }
-            if (newf[i]==newfh[i]&&i!=0&&i!=N-1){
-                newfh[i]=newf[i]+h;
-        //         *stable=-2;
-            }
-            if(newfh[i]-newf[i]==fh[i]-f[i]){
-                *sameness*=1;
-            }
-            else{
-                *sameness=0;
-            }
+            
             
             if(newf[i]>newf[*lrgEl]){
                 *lrgEl=i;
@@ -173,18 +157,35 @@ __kernel void time_dev(__global double *f,
             if(absol(newf[i])>*lrgVl){
                 *lrgVl=absol(newf[i]);
             }
+            if(*runs>100){
+                newx[i] = x[i] + ((f[i]+clas((double)i*deltat, om, potID))*(f[0]+clas(0, om, potID))-x[i])/((double)(*runs+j+1));
+            }
+            
             if(j<loops-1){
                 f[i] = newf[i];
-                fh[i] = newfh[i];
+                x[i] = newx[i];
+                
             }
-            else{
-                if(i==N-1){
-//                     printf("%f\n",newf[i]);
-                }
-            }
+            
+            
         }
         else{
-            *omega = newomega;            
+            if(newomega>(double)(N-1)*deltat){
+                *omega = 2*(double)(N-1)*deltat - newomega;
+            }
+            else{
+                if(newomega<0){
+                    *omega = -newomega;
+                }
+                else{
+                    *omega = newomega;
+                }
+            }
+//             for(int k=0; k<M; k++){
+//                 printf("%lu, ", rand1[k]);
+//             }
+//             printf("%d, %d\n", i,M);
+            
 //             printf("%f\n",*omega);
         }
         barrier(CLK_GLOBAL_MEM_FENCE);
@@ -193,9 +194,9 @@ __kernel void time_dev(__global double *f,
         }
         
     }
+    
 //     barrier(CLK_GLOBAL_MEM_FENCE);
 //     newf[i]=dw;
-//     newfh[i]=h;
     
 }
 
@@ -282,8 +283,7 @@ double random(__global ulong * seed, int gid){
     double v1 = (double)(seed[gid] >> 16) / (double)pown((float)2,32);
     seed[gid] = ((seed[gid]+(ulong)gid) * 0x5DEECE66DL + 0xBL) & ((1L << 48) - 1);
     double v2 = (double)(seed[gid] >> 16) / (double)pown((float)2,32);
-    
 //     return v1;
-    return (double)cos((float)(2.*3.14*v2))*(double)sqrt((float)(-2.*(double)log((float)v1)));
+    return (double)cos((float)(2.*3.1415*v2))*(double)sqrt((float)(-2.*(double)log((float)v1)));
 }
 

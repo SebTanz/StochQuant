@@ -47,9 +47,9 @@ int main(int argc, char **argv) {
     int arlgth = 1;
     
     double *f       = (double*)malloc(sizeof(double)*LIST_SIZE);
-    double *fh      = (double*)malloc(sizeof(double)*LIST_SIZE);
+    double *x      = (double*)malloc(sizeof(double)*LIST_SIZE);
     double *newf    = (double*)malloc(sizeof(double)*LIST_SIZE);
-    double *newfh   = (double*)malloc(sizeof(double)*LIST_SIZE);
+    double *newx   = (double*)malloc(sizeof(double)*LIST_SIZE);
     
     unsigned long *rand1   = malloc(sizeof(unsigned long)*(LIST_SIZE+1));
     
@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
     int lrgEl = 0;
     double lrgVl = 0;
     
-    int sameness=1;
+    int inRun = 1;
     
     double v1;
     double v2;
@@ -79,7 +79,11 @@ int main(int argc, char **argv) {
     
     v1 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
     v2 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
-    omega = sqrt(2.*deltatau) *sin(2.*3.14*v2) *sqrt(-2.*log(v1))+deltat*(double)LIST_SIZE/2.;
+    omega = sqrt(2.*deltatau) *sin(2.*3.14*v2) *sqrt(-2.*log(v1))+deltat*(double)(LIST_SIZE)/2;
+//     omega = 0;
+    while(omega>LIST_SIZE*deltat){
+        omega-=deltat;
+    }
     
     if(strcmp(startFile, "0")==0){
         for(i=0;i<LIST_SIZE;i++){
@@ -161,9 +165,9 @@ int main(int argc, char **argv) {
         v2 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
         f[i]=sqrt(2.*deltatau) *cos(2.*3.14*v2) *sqrt(-2.*log(v1));;
 //         f[i] = eta * pow((exp((double)i*deltat-T/2.)+1)/(exp(-T/2.)+1),eta)-clas((double)i*deltat, omega, 3);
-        fh[i] = sqrt(2.*deltatau) *cos(2.*3.14*v2) *sqrt(-2.*log(v1));
+        x[i] = 0.;
         newf[i] = f[i];
-        newfh[i] = fh[i];
+        newx[i] = 0.;
         rand1[i] = (unsigned long)abs(rand());
     }
     
@@ -243,13 +247,13 @@ int main(int argc, char **argv) {
     cl_mem f_mem_obj = clCreateBuffer(context, CL_MEM_READ_WRITE, 
             LIST_SIZE * sizeof(double), NULL, &ret);
     
-    cl_mem fh_mem_obj = clCreateBuffer(context, CL_MEM_READ_WRITE,
+    cl_mem x_mem_obj = clCreateBuffer(context, CL_MEM_READ_WRITE,
             LIST_SIZE * sizeof(double), NULL, &ret);
     
     cl_mem nf_mem_obj = clCreateBuffer(context, CL_MEM_READ_WRITE, 
             LIST_SIZE * sizeof(double), NULL, &ret);
     
-    cl_mem nfh_mem_obj = clCreateBuffer(context, CL_MEM_READ_WRITE,
+    cl_mem nx_mem_obj = clCreateBuffer(context, CL_MEM_READ_WRITE,
             LIST_SIZE * sizeof(double), NULL, &ret);
     
     cl_mem om_mem_obj = clCreateBuffer(context, CL_MEM_READ_WRITE,
@@ -274,7 +278,7 @@ int main(int argc, char **argv) {
             sizeof(double), NULL, &ret);
     
     
-    cl_mem sm_mem_obj = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
+    cl_mem iR_mem_obj = clCreateBuffer(context, CL_MEM_READ_WRITE,
             sizeof(int), NULL, &ret);
     
     
@@ -284,8 +288,8 @@ int main(int argc, char **argv) {
     cl_mem cdt_mem_obj = clCreateBuffer(context, CL_MEM_READ_ONLY,
             sizeof(double), NULL, &ret);
     
-    cl_mem ch_mem_obj = clCreateBuffer(context, CL_MEM_READ_ONLY,
-            sizeof(double), NULL, &ret);
+    cl_mem nr_mem_obj = clCreateBuffer(context, CL_MEM_READ_ONLY,
+            sizeof(int), NULL, &ret);
     
     cl_mem cPi_mem_obj = clCreateBuffer(context, CL_MEM_READ_ONLY,
             sizeof(int), NULL, &ret);
@@ -302,14 +306,14 @@ int main(int argc, char **argv) {
     ret = clEnqueueWriteBuffer(command_queue, f_mem_obj, CL_TRUE, 0,
                                LIST_SIZE * sizeof(double), f, 0, NULL, NULL);
     
-    ret = clEnqueueWriteBuffer(command_queue, fh_mem_obj, CL_TRUE, 0,
-                               LIST_SIZE * sizeof(double), fh, 0, NULL, NULL);
+    ret = clEnqueueWriteBuffer(command_queue, x_mem_obj, CL_TRUE, 0,
+                               LIST_SIZE * sizeof(double), x, 0, NULL, NULL);
     
     ret = clEnqueueWriteBuffer(command_queue, nf_mem_obj, CL_TRUE, 0,
                                LIST_SIZE * sizeof(double), newf, 0, NULL, NULL);
     
-    ret = clEnqueueWriteBuffer(command_queue, nfh_mem_obj, CL_TRUE, 0, 
-                               LIST_SIZE * sizeof(double), newfh, 0, NULL, NULL);
+    ret = clEnqueueWriteBuffer(command_queue, nx_mem_obj, CL_TRUE, 0, 
+                               LIST_SIZE * sizeof(double), newx, 0, NULL, NULL);
     
     ret = clEnqueueWriteBuffer(command_queue, om_mem_obj, CL_TRUE, 0, 
                                sizeof(double), &omega, 0, NULL, NULL);
@@ -332,8 +336,8 @@ int main(int argc, char **argv) {
                                sizeof(double), &lrgVl, 0, NULL, NULL);
     
     
-    ret = clEnqueueWriteBuffer(command_queue, sm_mem_obj, CL_TRUE, 0, 
-                               sizeof(int), &sameness, 0, NULL, NULL);
+    ret = clEnqueueWriteBuffer(command_queue, iR_mem_obj, CL_TRUE, 0, 
+                               sizeof(int), &inRun, 0, NULL, NULL);
     
     
     ret = clEnqueueWriteBuffer(command_queue, cN_mem_obj, CL_TRUE, 0, 
@@ -342,8 +346,8 @@ int main(int argc, char **argv) {
     ret = clEnqueueWriteBuffer(command_queue, cdt_mem_obj, CL_TRUE, 0, 
                                sizeof(double), &deltat, 0, NULL, NULL);
     
-    ret = clEnqueueWriteBuffer(command_queue, ch_mem_obj, CL_TRUE, 0, 
-                               sizeof(double), &h, 0, NULL, NULL);
+    ret = clEnqueueWriteBuffer(command_queue, nr_mem_obj, CL_TRUE, 0, 
+                               sizeof(int), &recSimlgth, 0, NULL, NULL);
     
     ret = clEnqueueWriteBuffer(command_queue, cPi_mem_obj, CL_TRUE, 0, 
                                sizeof(int), &potID, 0, NULL, NULL);
@@ -393,19 +397,19 @@ int main(int argc, char **argv) {
     */
     // Set the arguments of the kernel
     ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&f_mem_obj);
-    ret = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&fh_mem_obj);
+    ret = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&x_mem_obj);
     ret = clSetKernelArg(kernel, 2, sizeof(cl_mem), (void *)&nf_mem_obj);
-    ret = clSetKernelArg(kernel, 3, sizeof(cl_mem), (void *)&nfh_mem_obj);
+    ret = clSetKernelArg(kernel, 3, sizeof(cl_mem), (void *)&nx_mem_obj);
     ret = clSetKernelArg(kernel, 4, sizeof(cl_mem), (void *)&om_mem_obj);
     ret = clSetKernelArg(kernel, 5, sizeof(cl_mem), (void *)&r1_mem_obj);
     ret = clSetKernelArg(kernel, 6, sizeof(cl_mem), (void *)&st_mem_obj);
     ret = clSetKernelArg(kernel, 7, sizeof(cl_mem), (void *)&dt_mem_obj);
     ret = clSetKernelArg(kernel, 8, sizeof(cl_mem), (void *)&lE_mem_obj);
     ret = clSetKernelArg(kernel, 9, sizeof(cl_mem), (void *)&lV_mem_obj);
-    ret = clSetKernelArg(kernel, 10, sizeof(cl_mem), (void *)&sm_mem_obj);
+    ret = clSetKernelArg(kernel, 10, sizeof(cl_mem), (void *)&iR_mem_obj);
     ret = clSetKernelArg(kernel, 11, sizeof(cl_mem), (void *)&cN_mem_obj);
     ret = clSetKernelArg(kernel, 12, sizeof(cl_mem), (void *)&cdt_mem_obj);
-    ret = clSetKernelArg(kernel, 13, sizeof(cl_mem), (void *)&ch_mem_obj);
+    ret = clSetKernelArg(kernel, 13, sizeof(cl_mem), (void *)&nr_mem_obj);
     ret = clSetKernelArg(kernel, 14, sizeof(cl_mem), (void *)&cPi_mem_obj);
     ret = clSetKernelArg(kernel, 15, sizeof(cl_mem), (void *)&cC_mem_obj);
     ret = clSetKernelArg(kernel, 16, sizeof(cl_mem), (void *)&cL_mem_obj);
@@ -414,11 +418,7 @@ int main(int argc, char **argv) {
     
      ret = clGetKernelWorkGroupInfo(kernel, *device0, CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t), &maxKernWorkGrSize, NULL);
 //      printf("%ld\n", maxKernWorkGrSize);
-    // Execute the OpenCL kernel on the list
-    size_t global_item_size = LIST_SIZE+1; // Process the entire lists
-    
-    // Divide work items into groups of 64
-//     size_t local_item_size = 1;
+    size_t global_item_size = LIST_SIZE+1; 
 
     size_t local_item_size = maxKernWorkGrSize;
     
@@ -455,7 +455,7 @@ int main(int argc, char **argv) {
     double aver2;
     double zero;
     
-    int runs = 0;
+    int runs = recSimlgth;
     int nancount=0;
     for(int j=0; j<frames; j++){
         
@@ -470,15 +470,12 @@ int main(int argc, char **argv) {
                 if (parisi==1){
                     aver1=(fhavg[i]-favg[i])/h;
                     aver2=(fhavg[i-1]-favg[i-1])/h;
-                    printf(" % -.20f |", (log(absol(aver1))-log(absol(aver2)))/deltat);
+//                     printf(" % -.20f |", (log(absol(aver1))-log(absol(aver2)))/deltat);
 //                     printf(" % -.20f |", f[i]);
                 } 
                 
                 else{
                     
-                    
-                    aver1=(favg[i]+xclavg[i])*(favg[0]+xclavg[0]);
-                    aver2=(favg[i-1]+xclavg[i-1])*(favg[0]+xclavg[0]);
                     aver1 = (f[i]+clas((double)i*deltat, omega, 3))*(f[0]+clas(0., omega, 3));
                     aver2 = (f[i-1]+clas((double)(i-1)*deltat, omega, 3))*(f[0]+clas(0., omega, 3));
 //                     printf(" % -.20f |", xavg[i]);
@@ -488,6 +485,7 @@ int main(int argc, char **argv) {
                     
                 }
                 if(i==LIST_SIZE-1){
+//                     printf("% -.20f | ", f[i]);
                     printf("% -.20f | ", dtautmp);
                     
                    
@@ -504,23 +502,20 @@ int main(int argc, char **argv) {
 //             printf("stable %d", stable);
             ret = clEnqueueReadBuffer(command_queue, nf_mem_obj, CL_TRUE, 0, 
                                         LIST_SIZE * sizeof(double), f, 0, NULL, NULL);
-            ret = clEnqueueReadBuffer(command_queue, nfh_mem_obj, CL_TRUE, 0, 
-                                        LIST_SIZE * sizeof(double), fh, 0, NULL,NULL);
+            ret = clEnqueueReadBuffer(command_queue, nx_mem_obj, CL_TRUE, 0, 
+                                        LIST_SIZE * sizeof(double), xavg, 0, NULL,NULL);
             ret = clEnqueueReadBuffer(command_queue, om_mem_obj, CL_TRUE, 0, 
                                         sizeof(double), &omega, 0, NULL,NULL);
 //             ret = clFinish(command_queue);
 //             printf("% -.20f | ", omega);
-            if(j>=inTime){
-                runs+=1;
-                zero = f[0]+clas(0., omega, 3);
-                for(i=0; i<LIST_SIZE; i++){
-//                     printf(" % -.20f |", (f[i]-favg[i]));
-                    xavg[i]+=((f[i]+clas((double)i*deltat, omega, 3))*zero-xavg[i])/(runs+recSimlgth);
-                    favg[i]+=(f[i]-favg[i])/(runs+recSimlgth);
-                    fhavg[i]+=(fh[i]-fhavg[i])/(runs+recSimlgth);
-                    xclavg[i]+=(clas((double)i*deltat, omega, 3)-xclavg[i])/(runs+recSimlgth);
-                }
-            }
+//             if(j>=inTime){
+//                 runs+=1;
+//                 zero = f[0]+clas(0., omega, 3);
+//                 for(i=0; i<LIST_SIZE; i++){
+// //                     printf(" % -.20f |", (f[i]-favg[i]));
+// //                     xavg[i]+=((f[i]+clas((double)i*deltat, omega, 3))*zero-xavg[i])/(runs+recSimlgth);
+//                 }
+//             }
             
 //             dtautmp=deltatau;
             if(stabCnt>100){
@@ -528,7 +523,7 @@ int main(int argc, char **argv) {
                 dtautmp = deltatau;
                 ret = clEnqueueWriteBuffer(command_queue, dt_mem_obj, CL_TRUE,   0,sizeof(double), &dtautmp, 0, NULL, NULL);
             }
-            
+            runs += loops;
             
         }
         else{
@@ -537,8 +532,8 @@ int main(int argc, char **argv) {
                                         sizeof(double), &dtautmp, 0, NULL, NULL);
 //             ret = clEnqueueReadBuffer(command_queue, nf_mem_obj, CL_TRUE, 0, 
 //                                         LIST_SIZE * sizeof(double), f, 0, NULL, NULL);
-//             ret = clEnqueueReadBuffer(command_queue, nfh_mem_obj, CL_TRUE, 0, 
-//                                         LIST_SIZE * sizeof(double), fh, 0, NULL,NULL);
+//             ret = clEnqueueReadBuffer(command_queue, nx_mem_obj, CL_TRUE, 0, 
+//                                         LIST_SIZE * sizeof(double), x, 0, NULL,NULL);
             
 //             for(i=0; i<LIST_SIZE; i++){
 //                 printf("% -.20f", f[i]);
@@ -551,25 +546,14 @@ int main(int argc, char **argv) {
             ret = clEnqueueWriteBuffer(command_queue, st_mem_obj, CL_TRUE, 0, 
                                sizeof(int), &stable, 0, NULL, NULL);
         }
-        ret = clEnqueueReadBuffer(command_queue, sm_mem_obj, CL_TRUE, 0, 
-                                  sizeof(int), &sameness, 0, NULL, NULL);
-        
-        if (sameness==1){
-//             printf("sameness %d", sameness);
-            
-            
-        }
-        else{
-            sameness=1;
-            ret = clEnqueueWriteBuffer(command_queue, sm_mem_obj, CL_TRUE, 0, 
-                                           sizeof(int), &sameness, 0, NULL, NULL);
-        }
         
 //         
         
+        
         ret = clEnqueueWriteBuffer(command_queue, f_mem_obj, CL_TRUE, 0, LIST_SIZE * sizeof(double), f, 0, NULL, NULL);
-        ret = clEnqueueWriteBuffer(command_queue, fh_mem_obj, CL_TRUE, 0, LIST_SIZE * sizeof(double), fh, 0, NULL, NULL);
+        ret = clEnqueueWriteBuffer(command_queue, x_mem_obj, CL_TRUE, 0, LIST_SIZE * sizeof(double), xavg, 0, NULL, NULL);
         ret = clEnqueueWriteBuffer(command_queue, om_mem_obj, CL_TRUE, 0, sizeof(double), &omega, 0, NULL, NULL);
+        ret = clEnqueueWriteBuffer(command_queue, nr_mem_obj, CL_TRUE, 0, sizeof(int), &runs, 0, NULL, NULL);
         
         
         
@@ -586,7 +570,7 @@ int main(int argc, char **argv) {
         
         for (i=0; i<LIST_SIZE; i++){
             for(k=0; k<arlgth; k++){
-                fprintf(fp, "% -*a|% -*a|% -*a|",endAccuracy, favg[i], endAccuracy, fhavg[i], endAccuracy, xclavg[i]);
+                fprintf(fp, "% -*a|% -*a|% -*a|",endAccuracy, favg[i], endAccuracy, xavg[i], endAccuracy, xclavg[i]);
             }
             fprintf(fp,"\n");
             
@@ -606,19 +590,19 @@ int main(int argc, char **argv) {
     ret = clReleaseKernel(kernel);
     ret = clReleaseProgram(program);
     ret = clReleaseMemObject(f_mem_obj);
-    ret = clReleaseMemObject(fh_mem_obj);
+    ret = clReleaseMemObject(x_mem_obj);
     ret = clReleaseMemObject(nf_mem_obj);
-    ret = clReleaseMemObject(nfh_mem_obj);
+    ret = clReleaseMemObject(nx_mem_obj);
     ret = clReleaseMemObject(om_mem_obj);
     ret = clReleaseMemObject(r1_mem_obj);
     ret = clReleaseMemObject(st_mem_obj);
     ret = clReleaseMemObject(dt_mem_obj);
     ret = clReleaseMemObject(lE_mem_obj);
     ret = clReleaseMemObject(lV_mem_obj);
-    ret = clReleaseMemObject(sm_mem_obj);
+    ret = clReleaseMemObject(iR_mem_obj);
     ret = clReleaseMemObject(cN_mem_obj);
     ret = clReleaseMemObject(cdt_mem_obj);
-    ret = clReleaseMemObject(ch_mem_obj);
+    ret = clReleaseMemObject(nr_mem_obj);
     ret = clReleaseMemObject(cPi_mem_obj);
     ret = clReleaseMemObject(cC_mem_obj);
     ret = clReleaseMemObject(cL_mem_obj);
@@ -626,9 +610,9 @@ int main(int argc, char **argv) {
     ret = clReleaseCommandQueue(command_queue);
     ret = clReleaseContext(context);
     free(f);
-    free(fh);
+    free(x);
     free(newf);
-    free(newfh);
+    free(newx);
     free(rand1);
     free(device_id);
     free(platform_id);
