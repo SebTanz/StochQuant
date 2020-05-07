@@ -19,6 +19,9 @@ double intConst (int potID);
 
 double doubleWellSol(double t, double t0);
 double clas(double a, double w, int pot);
+const double eta = 1.;
+const double lbda = 100.;
+const double m = 1.;
 
 
 int main(int argc, char **argv) {
@@ -79,7 +82,7 @@ int main(int argc, char **argv) {
     
     v1 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
     v2 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
-    omega = sqrt(2.*deltatau) *sin(2.*3.14*v2) *sqrt(-2.*log(v1))+deltat*(double)(LIST_SIZE)/2;
+    omega = sqrt(2.*deltatau) *sin(2.*3.14*v2) *sqrt(-2.*log(v1))+deltat*(double)(LIST_SIZE);
 //     omega = 0;
     while(omega>LIST_SIZE*deltat){
         omega-=deltat;
@@ -115,21 +118,24 @@ int main(int argc, char **argv) {
                 for(int n=0; n<length; n++)
                     litstr[n] = string[n];
                 if(i==LIST_SIZE){
-                    recSimlgth = atoi(litstr);
+                    omega = atof(litstr);
+                    
                 }
                 if(i==LIST_SIZE+1){
+                    recSimlgth = atoi(litstr);
                     
+                }
+                if(i==LIST_SIZE+2){
                     dtautmp = atof(litstr);
                     if(dtautmp>deltatau)
                         dtautmp=deltatau;
+                    
                 }
                 if (i<LIST_SIZE){
                     token = strtok(litstr, "|");
-                    favg[i] = (double)atof(token);
+                    xavg[i] = (double)atof(token);
                     token = strtok(NULL, "|");
-                    fhavg[i] = (double)atof(token);
-                    token = strtok(NULL, "|");
-                    xclavg[i] = (double)atof(token);
+                    f[i] = (double)atof(token);
                     
                     
                     length=0;
@@ -416,7 +422,7 @@ int main(int argc, char **argv) {
     
     size_t maxKernWorkGrSize;
     
-     ret = clGetKernelWorkGroupInfo(kernel, *device0, CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t), &maxKernWorkGrSize, NULL);
+    ret = clGetKernelWorkGroupInfo(kernel, *device0, CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t), &maxKernWorkGrSize, NULL);
 //      printf("%ld\n", maxKernWorkGrSize);
     size_t global_item_size = LIST_SIZE+1; 
 
@@ -570,11 +576,12 @@ int main(int argc, char **argv) {
         
         for (i=0; i<LIST_SIZE; i++){
             for(k=0; k<arlgth; k++){
-                fprintf(fp, "% -*a|% -*a|% -*a|",endAccuracy, favg[i], endAccuracy, xavg[i], endAccuracy, xclavg[i]);
+                fprintf(fp, "% -*a| % -*a",endAccuracy, xavg[i], endAccuracy, f[i]);
             }
             fprintf(fp,"\n");
             
         }
+        fprintf(fp, "% -*a|omega\n", endAccuracy, omega);
         fprintf(fp, "%*d|N\n", endAccuracy, runs+recSimlgth);
         fprintf(fp, "% -*e|deltaTau\n", endAccuracy, dtautmp);
         fclose( fp );
@@ -641,19 +648,19 @@ int min(int m, int n){
     
 }
 double intConst(int potID){
-    
+    /*
     double eta = 10.;
     double lbda = .5;
-    double m = 1.;
+    double m = 1.;*/
     return 1./sqrt((pow(eta,3)*pow((lbda/m),(3./2.))*sqrt(2.)*4./3.));
     
 }
 double doubleWellSol(double t, double t0){
 //     float x0=1.;
-    
+    /*
     double m = 1.;
     double eta = 10.;
-    double lbda = .5;
+    double lbda = .5;*/
     return eta * tanh((eta*sqrt((2.*lbda/m))*(t-t0)));
     
 }

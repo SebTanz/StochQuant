@@ -12,7 +12,9 @@ double intConst (int potID);
 double boundary(int rl, int pot);
 double absol(double a);
 double random(__global ulong * seed, int gid);
-
+__constant double eta = 1.;
+__constant double lbda = 100.;
+__constant double m = 1.;
 
 
 __kernel void time_dev(__global double *f,
@@ -43,7 +45,7 @@ __kernel void time_dev(__global double *f,
     double deltatau = *deltaTau;
     double deltat = *deltaT;
     double om = *omega;
-    double m = 1.;
+//     double m = 1.;
     int potID = *potential;
     double c = *C;
     int loops = *Loops;
@@ -157,9 +159,7 @@ __kernel void time_dev(__global double *f,
             if(absol(newf[i])>*lrgVl){
                 *lrgVl=absol(newf[i]);
             }
-            if(*runs>100){
-                newx[i] = x[i] + ((f[i]+clas((double)i*deltat, om, potID))*(f[0]+clas(0, om, potID))-x[i])/((double)(*runs+j+1));
-            }
+            newx[i] = x[i] + ((f[i]+clas((double)i*deltat, om, potID))*(f[0]+clas(0, om, potID))-x[i])/((double)(*runs+j+1));
             
             if(j<loops-1){
                 f[i] = newf[i];
@@ -209,16 +209,16 @@ __kernel void time_dev(__global double *f,
 
 double doubleWellSol(double t, double t0){
 //     float x0=1.;
-    double m = 1.;
-    double eta = 10.;
-    double lbda = .5;
+//     double m = 1.;
+//     double eta = 10.;
+//     double lbda = .5;
     return eta * (double)tanh((float)(eta*(double)sqrt((float)(2.*lbda/m))*(t-t0)));
     
 }
 double doubleWellPot(double a){
 //     float x0=1.;
-    double lbda = .5;
-    double eta = 10.;
+//     double lbda = .5;
+//     double eta = 10.;
     return 12.*lbda*a*a-4.*lbda*eta*eta;
     
 }
@@ -249,14 +249,14 @@ double ddPot(double a, int pot){
     
 }
 double intConst(int potID){
-    double eta = 10.;
-    double lbda = .5;
-    double m = 1.;
+//     double eta = 10.;
+//     double lbda = .5;
+//     double m = 1.;
     return 1./(double)sqrt((float)((double)pown((float)eta,3)*(double)pow((float)(lbda/m),(float)(3./2.))*(double)sqrt((float)2.)*4./3.));
     
 }
 double boundary(int rl, int pot){
-    double eta = 10.;
+//     double eta = 10.;
     if (rl==1){
         return eta;
     }
@@ -278,12 +278,14 @@ double absol(double a){
 }
  
 double random(__global ulong * seed, int gid){
-    
-    seed[gid] = ((seed[gid]+(ulong)gid) * 0x5DEECE66DL + 0xBL) & ((1L << 48) - 1);
-    double v1 = (double)(seed[gid] >> 16) / (double)pown((float)2,32);
-    seed[gid] = ((seed[gid]+(ulong)gid) * 0x5DEECE66DL + 0xBL) & ((1L << 48) - 1);
-    double v2 = (double)(seed[gid] >> 16) / (double)pown((float)2,32);
-//     return v1;
-    return (double)cos((float)(2.*3.1415*v2))*(double)sqrt((float)(-2.*(double)log((float)v1)));
+    double result;
+    do{
+        seed[gid] = ((seed[gid]+(ulong)gid) * 0x5DEECE66DL + 0xBL) & ((1L << 48) - 1);
+        double v1 = (double)(seed[gid] >> 16) / (double)pown((float)2,32);
+        seed[gid] = ((seed[gid]+(ulong)gid) * 0x5DEECE66DL + 0xBL) & ((1L << 48) - 1);
+        double v2 = (double)(seed[gid] >> 16) / (double)pown((float)2,32);
+        result = (double)cos((float)(2.*3.1415*v2))*(double)sqrt((float)(-2.*(double)log((float)v1)));
+    }while(isinf((float)result));
+    return result;
 }
 
