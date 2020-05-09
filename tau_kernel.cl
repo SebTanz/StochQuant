@@ -279,12 +279,17 @@ double absol(double a){
  
 double random(__global ulong * seed, int gid){
     double result;
+    ulong temp;
     do{
-        seed[gid] = ((seed[gid]+(ulong)gid) * 0x5DEECE66DL + 0xBL) & ((1L << 48) - 1);
-        double v1 = (double)(seed[gid] >> 16) / (double)pown((float)2,32);
-        seed[gid] = ((seed[gid]+(ulong)gid) * 0x5DEECE66DL + 0xBL) & ((1L << 48) - 1);
-        double v2 = (double)(seed[gid] >> 16) / (double)pown((float)2,32);
+        temp = ((*seed+(ulong)gid) * 0x5DEECE66DL + 0xBL) & ((1L << 48) - 1);
+        double v1 = (double)(temp >> 16) / (double)pown((float)2,32);
+        temp = ((temp+(ulong)gid) * 0x5DEECE66DL + 0xBL) & ((1L << 48) - 1);
+        double v2 = (double)(temp >> 16) / (double)pown((float)2,32);
         result = (double)cos((float)(2.*3.1415*v2))*(double)sqrt((float)(-2.*(double)log((float)v1)));
+        if(*seed<(ulong)pown((float)2,31)&&temp<(ulong)pown((float)2,31))
+            *seed +=temp;
+        else
+            *seed = temp-(ulong)pown((float)2,31);
     }while(isinf((float)result));
     return result;
 }

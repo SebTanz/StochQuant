@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
     double *newf    = (double*)malloc(sizeof(double)*LIST_SIZE);
     double *newx   = (double*)malloc(sizeof(double)*LIST_SIZE);
     
-    unsigned long *rand1   = malloc(sizeof(unsigned long)*(LIST_SIZE+1));
+    unsigned long *rand1   = (unsigned long*)malloc(sizeof(unsigned long));
     
     int stable = 1;
     int k=1;
@@ -174,10 +174,10 @@ int main(int argc, char **argv) {
         x[i] = 0.;
         newf[i] = f[i];
         newx[i] = 0.;
-        rand1[i] = (unsigned long)abs(rand());
+//         rand1[i] = (unsigned long)abs(rand());
     }
     
-    rand1[LIST_SIZE] = (unsigned long)abs(rand());
+    *rand1 = (unsigned long)abs(rand());
     // Load the kernel source code into the array source_str
     
     fp = fopen("tau_kernel.cl", "r");
@@ -267,7 +267,7 @@ int main(int argc, char **argv) {
     
     
     cl_mem r1_mem_obj = clCreateBuffer(context, CL_MEM_READ_WRITE,
-            (LIST_SIZE+1) * sizeof(unsigned long), NULL, &ret);
+            sizeof(unsigned long), NULL, &ret);
     
     
     cl_mem st_mem_obj = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
@@ -326,7 +326,7 @@ int main(int argc, char **argv) {
     
     
     ret = clEnqueueWriteBuffer(command_queue, r1_mem_obj, CL_TRUE, 0, 
-                               (LIST_SIZE+1) * sizeof(unsigned long), rand1, 0, NULL, NULL);
+                               sizeof(unsigned long), rand1, 0, NULL, NULL);
     
     ret = clEnqueueWriteBuffer(command_queue, st_mem_obj, CL_TRUE, 0, 
                                sizeof(int), &stable, 0, NULL, NULL);
@@ -620,7 +620,6 @@ int main(int argc, char **argv) {
     free(x);
     free(newf);
     free(newx);
-    free(rand1);
     free(device_id);
     free(platform_id);
     
