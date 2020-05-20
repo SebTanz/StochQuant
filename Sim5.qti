@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE qti>
+<qti app="QtiPlot" version="0.9.9.3" dpi="96" arch="Win64" script="muParser" windows="3" expand="1">
+	<window type="1" name="Tabelle1" date="2458989.5492771" x="0" y="0" w="270" h="260">
+		<tab rows="40" cols="3" labels="0">
+			<col name="1" type="6" num="0" prec="13" plot="2" width="100" stat="0" data="6944.7197266;1726.3010254;210.42438507;21.355633736;2.2834271193;0.60473236442;0.67831611633;0.40375886858;0.79842504859;0.82531705499;0.50544893742;0.54805970192;0.60816654563;0.78601574898;0.54025438428;0.20521256328;0.69358059764;0.78952670097;0.57626086473;0.33813849092;0.78151896596;0.32332852483;0.33361315727;0.48119606078;0.44255615771;0.6280682683;0.16389250755;0.25213728845;0.47048066556;0.3023827225;0.125209108;0.28511092067;0.42177559435;0.45348694921;0.35739141703;0.23934425414;0.1987645328;0.28037813306;0.17666888237;0.23069236428;"/>
+			<col name="Zeit" type="6" num="0" prec="13" plot="1" width="100" formula="0.25*(i-1)" stat="0" muparser="1" data="0;0.25;0.5;0.75;1;1.25;1.5;1.75;2;2.25;2.5;2.75;3;3.25;3.5;3.75;4;4.25;4.5;4.75;5;5.25;5.5;5.75;6;6.25;6.5;6.75;7;7.25;7.5;7.75;8;8.25;8.5;8.75;9;9.25;9.5;9.75;"/>
+			<col name="2" type="6" num="0" prec="13" plot="2" width="100" formula="(log(abs(col(1,i)))-log(abs(col(1,i-1))))/0.25" stat="0" muparser="1" data=";-2.41815277908105;-3.65608184721347;-3.97433441160082;-3.88370123646147;-2.30809577051051;0.199475694702551;-0.901240243957877;1.18444831462739;0.0575466656096333;-0.851774127653634;0.140602329125377;0.180778625524291;0.445634885224891;-0.651331791568478;-1.68157741938906;2.11557196193535;0.225079545521886;-0.546990781543475;-0.926098065928998;1.45537964744981;-1.53318200461957;0.0543965979819345;0.636315572395826;-0.145414702117728;0.608153857391923;-2.33379100902131;0.748311912122406;1.08361881102807;-0.767939231523588;-1.53168420509984;1.42951172361021;0.680270374304185;0.125933388137946;-0.41368269867923;-0.696484449901377;-0.322736455036146;0.597620989541277;-0.802336311827839;0.463492633350143;"/>
+		</tab>
+	</window>
+	<window type="3" name="Grafik1" date="2458989.5540418" x="492" y="2" w="543" h="482" dpi="96">
+		<layout cw="529" ch="424" w="400" h="300" left="5" right="5" top="5" bottom="5" rows="1" cols="1" vSpace="5" hSpace="5" hAlign="0" vAlign="0" align="0" common="0" link="0" scale="1" sPrint="0" cmPrint="0" atUnits="1" atdIndex="0" atPolicy="4" alMode="0" luMode="2"/>
+		<tab x="5" y="5" w="494" h="414" autoscale="1" gap="1" scaleFont="1">
+			<page x="0.0094518" y="0.0117925" w="0.933837" h="0.976415"/>
+			<title text="Titel" color="#000000" font="Lucida Sans Unicode,10,-1,5,75,0,0,0,0,0" align="4228" fmw="33"/>
+			<frame bg="#ffffff,0"/>
+			<canvas x="52" y="73" w="400" h="300" fixRatio="1.33333" bg="#ffffff,0"/>
+			<grid xAxis="2" yAxis="0">
+				<majx lc="#a0a0a4" lw="1" ls="0"/>
+				<minx lc="#a0a0a4" lw="1" ls="0"/>
+				<majy lc="#a0a0a4" lw="1" ls="0"/>
+				<miny lc="#a0a0a4" lw="1" ls="0"/>
+			</grid>
+			<curve type="1" z="21" table="Tabelle1" x="Zeit" y="2" from="0" to="-1" line="0" lc="#000000" lw="1" ls="0" brc="#000000" brs="0">
+				<symbol style="1" size="7" lc="#000000" lw="1" ls="0" brc="#000000"/>
+			</curve>
+			<axis id="0" on="1" type="0" format="0" prec="6" lw="1">
+				<div from="-5" to="3" step="0" maj="9" min="5" type="0"/>
+				<ticks maj="1" majl="9" min="1" minl="5"/>
+				<title text="%(?Y)" color="#000000" font="Lucida Sans Unicode,8,-1,5,75,0,0,0,0,0" align="5124" space="2" fmw="32"/>
+				<labels space="4" font="Lucida Sans Unicode,8,-1,5,50,0,0,0,0,0"/>
+			</axis>
+			<axis id="1" on="1" type="0" format="0" prec="6" lw="1">
+				<div from="-5" to="3" step="0" maj="9" min="5" type="0"/>
+				<ticks maj="1" majl="9" min="1" minl="5"/>
+				<title text="%(?Y)" color="#000000" font="Lucida Sans Unicode,8,-1,5,75,0,0,0,0,0" align="5124" space="2" fmw="32"/>
+				<labels space="4" font="Lucida Sans Unicode,8,-1,5,50,0,0,0,0,0"/>
+			</axis>
+			<axis id="2" on="1" type="0" format="0" prec="6" lw="1">
+				<div from="0" to="10" step="0" maj="6" min="5" type="0"/>
+				<ticks maj="1" majl="9" min="1" minl="5"/>
+				<title text="%(?X)" color="#000000" font="Lucida Sans Unicode,8,-1,5,75,0,0,0,0,0" align="5124" space="2" fmw="32"/>
+				<labels space="4" font="Lucida Sans Unicode,8,-1,5,50,0,0,0,0,0"/>
+			</axis>
+			<axis id="3" on="1" type="0" format="0" prec="6" lw="1">
+				<div from="0" to="10" step="0" maj="6" min="5" type="0"/>
+				<ticks maj="1" majl="9" min="1" minl="5"/>
+				<title text="%(?X)" color="#000000" font="Lucida Sans Unicode,8,-1,5,75,0,0,0,0,0" align="5124" space="2" fmw="32"/>
+				<labels space="4" font="Lucida Sans Unicode,8,-1,5,50,0,0,0,0,0"/>
+			</axis>
+			<item type="2" x="0.25062656641604" y="2.73244147157191" frame="1" lc="#000000" lw="1" ls="0" bg="#ffffff,0" onTop="1" at="0" on="1" auto="1" font="Lucida Sans Unicode,8,-1,5,50,0,0,0,0,0" text="\l(1)%(1)"/>
+		</tab>
+	</window>
+	<window type="3" name="Grafik2" date="2458989.5547944" x="1035" y="0" w="543" h="482" active="1" dpi="96">
+		<layout cw="529" ch="424" w="400" h="300" left="5" right="5" top="5" bottom="5" rows="1" cols="1" vSpace="5" hSpace="5" hAlign="0" vAlign="0" align="0" common="0" link="0" scale="1" sPrint="0" cmPrint="0" atUnits="1" atdIndex="0" atPolicy="4" alMode="0" luMode="2"/>
+		<tab x="5" y="5" w="494" h="414" autoscale="1" gap="1" scaleFont="1">
+			<page x="0.0094518" y="0.0117925" w="0.933837" h="0.976415"/>
+			<title text="Titel" color="#000000" font="Lucida Sans Unicode,10,-1,5,75,0,0,0,0,0" align="4228" fmw="33"/>
+			<frame bg="#ffffff,0"/>
+			<canvas x="52" y="73" w="400" h="300" fixRatio="1.33333" bg="#ffffff,0"/>
+			<grid xAxis="2" yAxis="0">
+				<majx lc="#a0a0a4" lw="1" ls="0"/>
+				<minx lc="#a0a0a4" lw="1" ls="0"/>
+				<majy lc="#a0a0a4" lw="1" ls="0"/>
+				<miny lc="#a0a0a4" lw="1" ls="0"/>
+			</grid>
+			<curve type="0" z="21" table="Tabelle1" x="Zeit" y="2" from="0" to="-1" line="1" lc="#000000" lw="1" ls="0" brc="#000000" brs="0"/>
+			<axis id="0" on="1" type="0" format="0" prec="6" lw="1">
+				<div from="-5" to="3" step="0" maj="9" min="5" type="0"/>
+				<ticks maj="1" majl="9" min="1" minl="5"/>
+				<title text="%(?Y)" color="#000000" font="Lucida Sans Unicode,8,-1,5,75,0,0,0,0,0" align="5124" space="2" fmw="32"/>
+				<labels space="4" font="Lucida Sans Unicode,8,-1,5,50,0,0,0,0,0"/>
+			</axis>
+			<axis id="1" on="1" type="0" format="0" prec="6" lw="1">
+				<div from="-5" to="3" step="0" maj="9" min="5" type="0"/>
+				<ticks maj="1" majl="9" min="1" minl="5"/>
+				<title text="%(?Y)" color="#000000" font="Lucida Sans Unicode,8,-1,5,75,0,0,0,0,0" align="5124" space="2" fmw="32"/>
+				<labels space="4" font="Lucida Sans Unicode,8,-1,5,50,0,0,0,0,0"/>
+			</axis>
+			<axis id="2" on="1" type="0" format="0" prec="6" lw="1">
+				<div from="0" to="10" step="0" maj="6" min="5" type="0"/>
+				<ticks maj="1" majl="9" min="1" minl="5"/>
+				<title text="%(?X)" color="#000000" font="Lucida Sans Unicode,8,-1,5,75,0,0,0,0,0" align="5124" space="2" fmw="32"/>
+				<labels space="4" font="Lucida Sans Unicode,8,-1,5,50,0,0,0,0,0"/>
+			</axis>
+			<axis id="3" on="1" type="0" format="0" prec="6" lw="1">
+				<div from="0" to="10" step="0" maj="6" min="5" type="0"/>
+				<ticks maj="1" majl="9" min="1" minl="5"/>
+				<title text="%(?X)" color="#000000" font="Lucida Sans Unicode,8,-1,5,75,0,0,0,0,0" align="5124" space="2" fmw="32"/>
+				<labels space="4" font="Lucida Sans Unicode,8,-1,5,50,0,0,0,0,0"/>
+			</axis>
+			<item type="2" x="0.25062656641604" y="2.73244147157191" frame="1" lc="#000000" lw="1" ls="0" bg="#ffffff,0" onTop="1" at="0" on="1" auto="1" font="Lucida Sans Unicode,8,-1,5,50,0,0,0,0,0" text="\l(1)%(1)"/>
+		</tab>
+	</window>
+</qti>
