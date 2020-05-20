@@ -19,8 +19,10 @@ __constant double m = 1.;
 
 __kernel void time_dev(__global double *f,
                        __global double *x,
+                       __global double *xx0,
                        __global double *newf,
                        __global double *newx,
+                       __global double *newxx0,
                        __global double *omega,
                        __global ulong *rand1,
                        __global int *stable,
@@ -145,24 +147,26 @@ __kernel void time_dev(__global double *f,
             if (isinf((float)newf[i])==1||isnan((float)newf[i])==1){
                 newf[i] = max;
 //                 newf[i] = 0;
-                *stable=-1;
+//                 *stable=-1;
             }
             
             
-            if(newf[i]>newf[*lrgEl]){
+            if(newf[i]+clas((double)i*deltat, om, potID)>newf[*lrgEl]+clas((double)*lrgEl*deltat, om, potID)){
                 *lrgEl=i;
                 if(absol(newf[i]-f[i]-dw)>*lrgVl){
 //                     newf[i]=f[i];
                     *stable=0;
                 }
             }
-            if(absol(newf[i])>*lrgVl){
-                *lrgVl=absol(newf[i]);
+            if(absol(newf[i]+clas((double)i*deltat, om, potID))>*lrgVl){
+                *lrgVl=absol(newf[i]+clas((double)i*deltat, om, potID));
             }
-            newx[i] = x[i] + ((f[i]+clas((double)i*deltat, om, potID))*(f[0]+clas(0, om, potID))-x[i])/((double)(*runs+j+1));
+            newxx0[i] = xx0[i] + ((f[i]+clas((double)i*deltat, om, potID))*(f[0]+clas(0, om, potID))-x[i])/((double)(*runs+j+1));
+            newx[i] = x[i] + ((f[i]+clas((double)i*deltat, om, potID))-x[i])/((double)(*runs+j+1));
             
             if(j<loops-1){
                 f[i] = newf[i];
+                xx0[i] = newxx0[i];
                 x[i] = newx[i];
                 
             }
