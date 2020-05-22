@@ -603,7 +603,7 @@ int main(int argc, char **argv) {
         
         for (i=0; i<LIST_SIZE; i++){
             for(k=0; k<arlgth; k++){
-                fprintf(fp, "% -*a| % -*a",endAccuracy, xavg[i], endAccuracy, f[i]);
+                fprintf(fp, "% -*a| % -*a| % -*a| % -*a",endAccuracy, xavg[i], endAccuracy, xx0[i], endAccuracy, x[i], endAccuracy, f[i]);
             }
             fprintf(fp,"\n");
             

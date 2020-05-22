@@ -161,7 +161,7 @@ __kernel void time_dev(__global double *f,
             if(absol(newf[i]+clas((double)i*deltat, om, potID))>*lrgVl){
                 *lrgVl=absol(newf[i]+clas((double)i*deltat, om, potID));
             }
-            newxx0[i] = xx0[i] + ((f[i]+clas((double)i*deltat, om, potID))*(f[0]+clas(0, om, potID))-x[i])/((double)(*runs+j+1));
+            newxx0[i] = xx0[i] + ((f[i]+clas((double)i*deltat, om, potID))*(f[0]+clas(0, om, potID))-xx0[i])/((double)(*runs+j+1));
             newx[i] = x[i] + ((f[i]+clas((double)i*deltat, om, potID))-x[i])/((double)(*runs+j+1));
             
             if(j<loops-1){
