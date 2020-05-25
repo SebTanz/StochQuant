@@ -45,6 +45,7 @@ int main(int argc, char **argv) {
 //     printf("%d, %f, %f, %f\n", LIST_SIZE, deltat, deltatau, h);
     int recSimlgth;
     
+    int midpt = LIST_SIZE/2;
     double omega;
     double hbar = 1.;
     int arlgth = 1;
@@ -92,7 +93,9 @@ int main(int argc, char **argv) {
     
     if(strcmp(startFile, "0")==0){
         for(i=0;i<LIST_SIZE;i++){
-            
+            v1 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
+            v2 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
+            f[i]=sqrt(2.*deltatau) *cos(2.*3.14*v2) *sqrt(-2.*log(v1));;
             favg[i] = 0;
             fhavg[i] = 0;
             xavg[i] = 0;
@@ -120,28 +123,39 @@ int main(int argc, char **argv) {
                 for(int n=0; n<length; n++)
                     litstr[n] = string[n];
                 if(i==LIST_SIZE){
-                    omega = atof(litstr);
+//                     omega = atof(litstr);
+//                     printf("%f\n",omega);
                     
                 }
                 if(i==LIST_SIZE+1){
-                    recSimlgth = atoi(litstr);
+                    token = strtok(litstr, "|");
+                    
+                    recSimlgth = atoi(token);
+//                     printf("%d\n", recSimlgth);
                     
                 }
                 if(i==LIST_SIZE+2){
-                    dtautmp = atof(litstr);
+                    token = strtok(litstr, "|");
+                    dtautmp = atof(token);
                     if(dtautmp>deltatau)
                         dtautmp=deltatau;
+//                     printf("%f\n",dtautmp);
                     
                 }
                 if (i<LIST_SIZE){
                     token = strtok(litstr, "|");
                     xavg[i] = (double)atof(token);
                     token = strtok(NULL, "|");
+                    xx0[i] = (double)atof(token);
+                    token = strtok(NULL, "|");
+                    x[i] = (double)atof(token);
+                    token = strtok(NULL, "|");
                     f[i] = (double)atof(token);
                     
                     
-                    length=0;
+                    
                 }
+                length=0;
                 i++;
                 
                 
@@ -169,15 +183,13 @@ int main(int argc, char **argv) {
     double T = LIST_SIZE*deltat;
     
     for (i=0; i<LIST_SIZE; i++){
-        v1 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
-        v2 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
-        f[i]=sqrt(2.*deltatau) *cos(2.*3.14*v2) *sqrt(-2.*log(v1));;
+        
 //         f[i] = eta * pow((exp((double)i*deltat-T/2.)+1)/(exp(-T/2.)+1),eta)-clas((double)i*deltat, omega, 3);
-        x[i] = 0.;
+//         x[i] = 0.;
         newf[i] = f[i];
-        newx[i] = 0.;
-        xx0[i] = 0.;
-        newxx0[i] = 0.;
+        newx[i] = x[i];
+//         xx0[i] = 0.;
+        newxx0[i] = xx0[i];
 //         rand1[i] = (unsigned long)abs(rand());
     }
     
@@ -479,6 +491,7 @@ int main(int argc, char **argv) {
     double zero;
     
     int runs = recSimlgth;
+    printf("%d", runs);
     int nancount=0;
     for(int j=0; j<frames; j++){
         
@@ -501,10 +514,10 @@ int main(int argc, char **argv) {
                     
                     aver1 = (f[i]+clas((double)i*deltat, omega, 3))*(f[0]+clas(0., omega, 3));
                     aver2 = (f[i-1]+clas((double)(i-1)*deltat, omega, 3))*(f[0]+clas(0., omega, 3));
-//                     printf(" % -.20f |", xavg[i]);
+                    printf(" % -.20f |", log(absol(xavg[i])));
 //                     printf(" % -.20f |", (f[LIST_SIZE-1]+clas((double)(LIST_SIZE-1)*deltat, omega, 3)));         
                     
-                    printf(" % -.20f |", -hbar*(log(absol(xavg[i]))-log(absol(xavg[i-1])))/deltat);
+//                     printf(" % -.20f |", -hbar*(log(absol(xavg[i]))-log(absol(xavg[i-1])))/deltat);
                     
                 }
                 if(i==LIST_SIZE-1){
@@ -534,7 +547,7 @@ int main(int argc, char **argv) {
             
             for(i=0; i<LIST_SIZE; i++){
                 
-                xavg[i] = xx0[i] - x[i]*x[0];
+                xavg[i] = xx0[i] - x[i]*x[midpt];
             }
 //             ret = clFinish(command_queue);
 //             printf("% -.20f | ", omega);

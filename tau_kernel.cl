@@ -55,6 +55,7 @@ __kernel void time_dev(__global double *f,
     int boundaryConditions = 1;
     double dw;
     double max = 1000;
+    int midpt = N/2;
     
     for(int j=0; j<loops; j++){
         om = *omega;
@@ -161,7 +162,7 @@ __kernel void time_dev(__global double *f,
             if(absol(newf[i]+clas((double)i*deltat, om, potID))>*lrgVl){
                 *lrgVl=absol(newf[i]+clas((double)i*deltat, om, potID));
             }
-            newxx0[i] = xx0[i] + ((f[i]+clas((double)i*deltat, om, potID))*(f[0]+clas(0, om, potID))-xx0[i])/((double)(*runs+j+1));
+            newxx0[i] = xx0[i] + ((f[i]+clas((double)i*deltat, om, potID))*(f[midpt]+clas((double)midpt*deltat, om, potID))-xx0[i])/((double)(*runs+j+1));
             newx[i] = x[i] + ((f[i]+clas((double)i*deltat, om, potID))-x[i])/((double)(*runs+j+1));
             
             if(j<loops-1){
