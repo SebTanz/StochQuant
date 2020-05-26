@@ -4,7 +4,11 @@
 
 double doubleWellSol(double t, double t0);
 double doubleWellPot(double a);
+double doubleWellConst();
 
+double harmOscSol(double t, double t0);
+double harmOscPot(double a);
+double harmOscConst();
 
 double clas(double a, double w, int pot);
 double ddPot(double a, int pot);
@@ -52,7 +56,7 @@ __kernel void time_dev(__global double *f,
     double c = *C;
     int loops = *Loops;
     double newomega;
-    int boundaryConditions = 1;
+    int boundaryConditions = 0;
     double dw;
     double max = 1000;
     int midpt = N/2;
@@ -227,37 +231,53 @@ double doubleWellPot(double a){
     return 12.*lbda*a*a-4.*lbda*eta*eta;
     
 }
+double doubleWellConst(){
+    return 1./(double)sqrt((float)((double)pown((float)eta,3)*(double)pow((float)(lbda/m),(float)(3./2.))*(double)sqrt((float)2.)*4./3.));
+    
+}
+double harmOscSol(double t, double t0){
+    return ((double)exp(sqrt((float)2.)*(float)t)-(double)exp(sqrt((float)2.)*(float)(2*t0-t)));
+    
+}
+double harmOscPot(double a){
+    return 2.;
+    
+}
+double harmOscConst(){
+    return 0.;
+}
 
 
 double clas(double a, double w, int pot){
+    if(pot==0){
+        return harmOscSol(a, w);
+    }
     
     if(pot==3){
         
-        return doubleWellSol(a, w);
-    }
-    else{
         return doubleWellSol(a, w);
     }
 
     
 }
 double ddPot(double a, int pot){
+    if(pot==0){
+        return harmOscPot(a);
+    }
 
     if(pot==3){
         
         return doubleWellPot(a);
     }
-    else{
-        return doubleWellPot(a);
-    }
-
-    
 }
 double intConst(int potID){
-//     double eta = 10.;
-//     double lbda = .5;
-//     double m = 1.;
-    return 1./(double)sqrt((float)((double)pown((float)eta,3)*(double)pow((float)(lbda/m),(float)(3./2.))*(double)sqrt((float)2.)*4./3.));
+    if(potID==0){
+        return harmOscConst();
+    }
+    if(potID==3){
+        
+        return doubleWellConst();
+    }
     
 }
 double boundary(int rl, int pot){

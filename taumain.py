@@ -10,9 +10,9 @@ import matplotlib.animation as animation
 from matplotlib import pyplot as plt
 from sys import stdout
 
-#potential = "harmosc"
+potential = "harmosc"
 #potential = "poeschlTeller"
-potential = "double_well"
+#potential = "double_well"
 #potential = "quartic"
 
 
@@ -115,18 +115,17 @@ presets = {
         "dt": 2,
         "potID":2,
         "theoVal":1.73,
-        #"c":31.62277660168379332e-3,
         "c":1.,
         "filename":"Quartic.txt"
     },
     "double_well": {
-        "dtau": .1,
+        "dtau": .01,
         "Nt": 100,
         "dt": 1.,
         "potID":3,
         "theoVal":10,
         "c":1.,
-        "filename":"tauDoubleWell4.txt"
+        "filename":"blabla.txt"
     }
 }
 preset = presets[potential]

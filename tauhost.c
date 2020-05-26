@@ -18,6 +18,7 @@ int min(int m, int n);
 double intConst (int potID);
 
 double doubleWellSol(double t, double t0);
+double harmOscSol(double t, double t0);
 double clas(double a, double w, int pot);
 const double eta = 1.;
 const double lbda = 100.;
@@ -491,7 +492,7 @@ int main(int argc, char **argv) {
     double zero;
     
     int runs = recSimlgth;
-    printf("%d", runs);
+//     printf("%d", runs);
     int nancount=0;
     for(int j=0; j<frames; j++){
         
@@ -517,7 +518,7 @@ int main(int argc, char **argv) {
                     printf(" % -.20f |", log(absol(xavg[i])));
 //                     printf(" % -.20f |", (f[LIST_SIZE-1]+clas((double)(LIST_SIZE-1)*deltat, omega, 3)));         
                     
-//                     printf(" % -.20f |", -hbar*(log(absol(xavg[i]))-log(absol(xavg[i-1])))/deltat);
+//                     printf(" % -.20f |", hbar*(log(absol(xavg[i]))-log(absol(xavg[i-1])))/deltat);
                     
                 }
                 if(i==LIST_SIZE-1){
@@ -547,7 +548,7 @@ int main(int argc, char **argv) {
             
             for(i=0; i<LIST_SIZE; i++){
                 
-                xavg[i] = xx0[i] - x[i]*x[midpt];
+                xavg[i] = (xx0[i] - x[i]*x[midpt]);
             }
 //             ret = clFinish(command_queue);
 //             printf("% -.20f | ", omega);
@@ -697,33 +698,24 @@ double intConst(int potID){
     
 }
 double doubleWellSol(double t, double t0){
-//     float x0=1.;
-    /*
-    double m = 1.;
-    double eta = 10.;
-    double lbda = .5;*/
+
     return eta * tanh((eta*sqrt((2.*lbda/m))*(t-t0)));
+    
+}
+double harmOscSol(double t, double t0){
+    return (double)exp(sqrt((float)2.)*(float)t)-(double)exp(sqrt((float)2.)*(float)(2*t0-t));
     
 }
 double clas(double a, double w, int pot){
     
-//     if(pot==0){
-//         return dharmosc(a);
-//         
-//     }
-//     if(pot==1){
-//         return poeschlTeller(a);
-//     }
-//     if(pot==2){
-//         return quartic(a);
-//     }
+    if(pot==0){
+        return harmOscSol(a,w);
+    }
     if(pot==3){
         
         return doubleWellSol(a, w);
     }
-    else{
-        return doubleWellSol(a, w);
-    }
+    
 
     
 }
