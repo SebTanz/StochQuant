@@ -56,7 +56,7 @@ __kernel void time_dev(__global double *f,
     double c = *C;
     int loops = *Loops;
     double newomega;
-    int boundaryConditions = 0;
+    int boundaryConditions = 1;
     double dw;
     double max = 1000;
     int midpt = N/2;
@@ -168,12 +168,13 @@ __kernel void time_dev(__global double *f,
             }
             newxx0[i] = xx0[i] + ((f[i]+clas((double)i*deltat, om, potID))*(f[midpt]+clas((double)midpt*deltat, om, potID))-xx0[i])/((double)(*runs+j+1));
             newx[i] = x[i] + ((f[i]+clas((double)i*deltat, om, potID))-x[i])/((double)(*runs+j+1));
+//             printf("%f\n",newxx0[i]);
             
             if(j<loops-1){
                 f[i] = newf[i];
                 xx0[i] = newxx0[i];
                 x[i] = newx[i];
-                
+//                 printf("%f\n",xx0[i]);
             }
             
             

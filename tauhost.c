@@ -435,7 +435,7 @@ int main(int argc, char **argv) {
     ret = clSetKernelArg(kernel, 2, sizeof(cl_mem), (void *)&xx0_mem_obj);
     ret = clSetKernelArg(kernel, 3, sizeof(cl_mem), (void *)&nf_mem_obj);
     ret = clSetKernelArg(kernel, 4, sizeof(cl_mem), (void *)&nx_mem_obj);
-    ret = clSetKernelArg(kernel, 5, sizeof(cl_mem), (void *)&nx_mem_obj);
+    ret = clSetKernelArg(kernel, 5, sizeof(cl_mem), (void *)&nxx0_mem_obj);
     ret = clSetKernelArg(kernel, 6, sizeof(cl_mem), (void *)&om_mem_obj);
     ret = clSetKernelArg(kernel, 7, sizeof(cl_mem), (void *)&r1_mem_obj);
     ret = clSetKernelArg(kernel, 8, sizeof(cl_mem), (void *)&st_mem_obj);
@@ -516,6 +516,8 @@ int main(int argc, char **argv) {
                     aver1 = (f[i]+clas((double)i*deltat, omega, 3))*(f[0]+clas(0., omega, 3));
                     aver2 = (f[i-1]+clas((double)(i-1)*deltat, omega, 3))*(f[0]+clas(0., omega, 3));
                     printf(" % -.20f |", log(absol(xavg[i])));
+//                     printf(" % -.20f |", xx0[i]);
+//                     printf(" % -.20f |", (f[i]+clas((double)i*deltat, omega, potID))*(f[midpt]+clas((double)midpt*deltat, omega, potID)));
 //                     printf(" % -.20f |", (f[LIST_SIZE-1]+clas((double)(LIST_SIZE-1)*deltat, omega, 3)));         
                     
 //                     printf(" % -.20f |", hbar*(log(absol(xavg[i]))-log(absol(xavg[i-1])))/deltat);
@@ -546,8 +548,10 @@ int main(int argc, char **argv) {
             ret = clEnqueueReadBuffer(command_queue, om_mem_obj, CL_TRUE, 0, 
                                         sizeof(double), &omega, 0, NULL,NULL);
             
+            
+            
             for(i=0; i<LIST_SIZE; i++){
-                
+//                 printf("%f\n",xx0[i]);
                 xavg[i] = (xx0[i] - x[i]*x[midpt]);
             }
 //             ret = clFinish(command_queue);
