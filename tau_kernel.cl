@@ -17,7 +17,7 @@ double boundary(int rl, int pot);
 double absol(double a);
 double random(__global ulong * seed, int gid);
 __constant double eta = 1.;
-__constant double lbda = 100.;
+__constant double lbda = 1.;
 __constant double m = 1.;
 
 

@@ -21,7 +21,7 @@ double doubleWellSol(double t, double t0);
 double harmOscSol(double t, double t0);
 double clas(double a, double w, int pot);
 const double eta = 1.;
-const double lbda = 100.;
+const double lbda = 1.;
 const double m = 1.;
 
 
