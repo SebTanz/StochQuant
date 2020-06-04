@@ -1,16 +1,16 @@
 # StochQuant
 
-Host kompilieren und dann über main.py aufrufen!
+tauhost.c kompilieren und dann über taumain.py oder taumain_windows.py aufrufen!
 
 Zum Kompilieren
 
 ```
-gcc host.c -o host.o -l OpenCL
+gcc tauhost.c -o tauhost.o -l OpenCL
 ```
 oder, falls OpenCL nicht global zugreifbar ist
 
 ```
-gcc host.c -o host.o -I<Pfad zum Include-Verzeichnis> -L<Pfad zum Library-Verzeichnis> -l OpenCL
+gcc tauhost.c -o tauhost.o -I<Pfad zum Include-Verzeichnis> -L<Pfad zum Library-Verzeichnis> -l OpenCL
 ```
 ausführen!
 

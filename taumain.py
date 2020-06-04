@@ -8,11 +8,10 @@ from time import sleep, time
 import numpy as np
 import matplotlib.animation as animation
 from matplotlib import pyplot as plt
+from sys import stdout
 
-potential = "harmosc"
-#potential = "poeschlTeller"
-#potential = "double_well"
-#potential = "quartic"
+#potential = "harmosc"
+potential = "double_well"
 
 
 class dataThread (threading.Thread):
@@ -24,23 +23,27 @@ class dataThread (threading.Thread):
         self.e = e
         self.cE = cE
         self.perc = 0.
+        self.dtau = 0
     def run(self):
         now = time()
         while True:
             line = self.proc.stdout.readline()
+            tmp=np.genfromtxt(BytesIO(line.strip()), delimiter="|")
+            if tmp.size>1:
+                self.dtau = tmp[-2]
+                self.perc = tmp[-1]
             if line == b'' and self.proc.poll() is not None: 
                 break
             elif not self.e.isSet():
-                
-                tmp=np.genfromtxt(BytesIO(line.strip()), delimiter="|")
                 #print(tmp)
+                #print("something")
                 if tmp.size>1:
-                    self.perc=tmp[-1]
-                    self.q.put(tmp[:-1])
-                if self.cE.isSet():
-                    self.e.set()
-            print("%.2f" %self.perc+"%")
-        print("100.00%, "+str(time()-now)+" seconds")
+                    self.q.put(tmp[:-2])
+                    if self.cE.isSet():
+                        self.e.set()
+            stdout.write("%6.2f" %self.perc+"%%| DeltaTau = %.2e"%self.dtau+"\r")
+        stdout.write("100.00%"+"| DeltaTau = %.2e| "%self.dtau+"%.2f seconds\n"%(time()-now))
+        #print("100.00%, "+str(time()-now)+" seconds")
         self.proc.stdout.close()
         self.proc.wait()
 
@@ -66,11 +69,17 @@ class animThread (threading.Thread):
             ax.set_ylim(self.axlim[0], self.axlim[1])
             return ln,
         def update(frame):
+            #print("something")
             if self.e.isSet():
+                
                 self.y = self.q.get()
+                #print("something")
+                #tempor = self.q.get()
+                #nanidx = np.logical_not(np.isnan(tempor))
+                #self.y[nanidx] = tempor[nanidx]
                 self.e.clear()
             tx.set_text(str(self.y[0])+", "+str(self.y[-1]))
-            
+            #print(self.y)
             ln.set_data(self.time, self.y)
             return ln,
         ani = animation.FuncAnimation(fig, update, frames=self.frames, init_func=init, blit=False)
@@ -85,61 +94,42 @@ presets = {
         "Nt": 100,
         "dt": .1,
         "potID":0,
-        "theoVal":1.,
+        "theoVal":20.,
         "c":1.,
         "filename":"HarmOsc.txt"
     },
-    "poeschlTeller": {
-        "dtau": .1,
-        "Nt": 100,
-        "dt": 1.,
-        "potID":1,
-        "theoVal":.1315,
-        "c":1.,
-        "filename":"PoeschlTeller.txt"
-    },
     "double_well": {
-        "dtau": 0.01,
-        "Nt": 100,
-        "dt": 1.,
+        "dtau": .002,
+        "Nt": 200,
+        "dt": .02,
         "potID":3,
-        "theoVal":.7,
+        "theoVal":10,
         "c":1.,
-        "filename":"DoubleWell.txt"
-    },
-    "quartic": {
-        "dtau": 0.1,
-        "Nt": 100,
-        "dt": 1.,
-        "potID":2,
-        "theoVal":1.73,
-        #"c":31.62277660168379332e-3,
-        "c":1.,
-        "filename":"Quartic.txt"
+        "filename":"V0_2e_0-8.txt"
     }
 }
 preset = presets[potential]
 n = preset["Nt"]
 deltat = preset["dt"]
 deltatau = preset["dtau"]
-h = 1e-3
-parisi = 0
-entw = 300000
+entw = 5000
 potID = preset["potID"]
 c = preset["c"]
 strtval = preset["theoVal"]
 mdpoint = 50.
 device = 2
-rpf = 1000
-intime = 1000
+rpf = 1
+intime = 0
+loops = 1000
 inputf = preset["filename"]
-#inputf = "0"
+inputf = "0"
 outputf = preset["filename"]
+#outputf = "0"
 acco = 40
 
 dmax=strtval+.5*strtval
 
-p = subprocess.Popen(['./host.o', str(n), str(deltat), str(deltatau), str(h), str(parisi), str(entw), str(potID), str(c), str(device), str(rpf), str(intime), inputf, outputf, str(acco)], stdout=subprocess.PIPE, bufsize=1)
+p = subprocess.Popen(['./tauhost.o', str(n), str(deltat), str(deltatau), str(entw), str(potID), str(c), str(device), str(rpf), str(intime), str(loops), inputf, outputf, str(acco)], stdout=subprocess.PIPE, bufsize=1)
 ev = threading.Event()
 queue = Queue()
 closeEv = threading.Event()
