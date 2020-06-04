@@ -20,30 +20,27 @@ double intConst (int potID);
 double doubleWellSol(double t, double t0);
 double harmOscSol(double t, double t0);
 double clas(double a, double w, int pot);
-const double eta = 1.;
-const double lbda = 1.;
+const double eta = .8;
+// const double lbda = .25;
+const double V0 = 2.;
 const double m = 1.;
 
 
 int main(int argc, char **argv) {
     // Create the two input vectors
-//     printf("Hello");
     const int LIST_SIZE     = atoi(argv[1]);
     const double deltat     = atof(argv[2]);
     const double deltatau   = atof(argv[3]);
-    const double h          = atof(argv[4]);
-    const int parisi        = atoi(argv[5]);
-    const int frames        = atoi(argv[6]);
-    const int potID         = atoi(argv[7]);
-    const double C          = atof(argv[8]);
-    const int dev           = atoi(argv[9]);
-    const int fps           = atoi(argv[10]);
-    const int inTime        = atoi(argv[11]);
-    const int loops         = atoi(argv[12]);
-    const char * startFile  = argv[13];
-    const char * endFile    = argv[14];
-    const int endAccuracy   = atoi(argv[15]);
-//     printf("%d, %f, %f, %f\n", LIST_SIZE, deltat, deltatau, h);
+    const int frames        = atoi(argv[4]);
+    const int potID         = atoi(argv[5]);
+    const double C          = atof(argv[6]);
+    const int dev           = atoi(argv[7]);
+    const int fps           = atoi(argv[8]);
+    const int inTime        = atoi(argv[9]);
+    const int loops         = atoi(argv[10]);
+    const char * startFile  = argv[11];
+    const char * endFile    = argv[12];
+    const int endAccuracy   = atoi(argv[13]);
     int recSimlgth;
     
     int midpt = LIST_SIZE/2;
@@ -87,7 +84,6 @@ int main(int argc, char **argv) {
     v1 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
     v2 = (double)(rand() + 1. )/( (double)(RAND_MAX) + 1.);
     omega = sqrt(2.*deltatau) *sin(2.*3.14*v2) *sqrt(-2.*log(v1))+deltat*(double)(LIST_SIZE/2);
-//     omega = 0;
     while(omega>LIST_SIZE*deltat){
         omega-=deltat;
     }
@@ -124,15 +120,12 @@ int main(int argc, char **argv) {
                 for(int n=0; n<length; n++)
                     litstr[n] = string[n];
                 if(i==LIST_SIZE){
-//                     omega = atof(litstr);
-//                     printf("%f\n",omega);
                     
                 }
                 if(i==LIST_SIZE+1){
                     token = strtok(litstr, "|");
                     
                     recSimlgth = atoi(token);
-//                     printf("%d\n", recSimlgth);
                     
                 }
                 if(i==LIST_SIZE+2){
@@ -140,7 +133,6 @@ int main(int argc, char **argv) {
                     dtautmp = atof(token);
                     if(dtautmp>deltatau)
                         dtautmp=deltatau;
-//                     printf("%f\n",dtautmp);
                     
                 }
                 if (i<LIST_SIZE){
@@ -175,7 +167,6 @@ int main(int argc, char **argv) {
             
         }
         free(string);
-//         free(tmp);
         i=0;
         fclose( fp );
         
@@ -185,17 +176,13 @@ int main(int argc, char **argv) {
     
     for (i=0; i<LIST_SIZE; i++){
         
-//         f[i] = eta * pow((exp((double)i*deltat-T/2.)+1)/(exp(-T/2.)+1),eta)-clas((double)i*deltat, omega, 3);
-//         x[i] = 0.;
+
         newf[i] = f[i];
         newx[i] = x[i];
-//         xx0[i] = 0.;
         newxx0[i] = xx0[i];
-//         rand1[i] = (unsigned long)abs(rand());
     }
     
     *rand1 = (unsigned long)abs(rand());
-    // Load the kernel source code into the array source_str
     
     fp = fopen("tau_kernel.cl", "r");
     if (!fp) {
@@ -206,7 +193,6 @@ int main(int argc, char **argv) {
     source_size = fread( source_str, 1, MAX_SOURCE_SIZE, fp);
     fclose( fp );
  
-    // Get platform and device information
     cl_platform_id *platform_id;
     cl_device_id *device_id;   
     cl_uint ret_num_devices;
@@ -222,7 +208,6 @@ int main(int argc, char **argv) {
     device_id = (cl_device_id*) malloc(sizeof(cl_device_id) * ret_num_devices);
     ret = clGetDeviceIDs( *platform0, CL_DEVICE_TYPE_DEFAULT, ret_num_devices, device_id, NULL);
     
-    //print device information
     size_t valueSize;
     char* value;
     cl_uint maxComputeUnits;
@@ -331,7 +316,6 @@ int main(int argc, char **argv) {
     
     
  
-    // Copy the lists x and xh to their respective memory buffers
     ret = clEnqueueWriteBuffer(command_queue, f_mem_obj, CL_TRUE, 0,
                                LIST_SIZE * sizeof(double), f, 0, NULL, NULL);
     
@@ -475,7 +459,6 @@ int main(int argc, char **argv) {
     
     
 
-//     size_t local_item_size = LIST_SIZE;
     double expec ;
     double expec2;
     double tmp;
@@ -492,7 +475,6 @@ int main(int argc, char **argv) {
     double zero;
     
     int runs = recSimlgth;
-//     printf("%d", runs);
     int nancount=0;
     for(int j=0; j<frames; j++){
         
@@ -504,27 +486,11 @@ int main(int argc, char **argv) {
             
             if(i!=0&&(j)%fps==0){
                 
-                if (parisi==1){
-                    aver1=(fhavg[i]-favg[i])/h;
-                    aver2=(fhavg[i-1]-favg[i-1])/h;
-//                     printf(" % -.20f |", (log(absol(aver1))-log(absol(aver2)))/deltat);
-//                     printf(" % -.20f |", f[i]);
-                } 
-                
-                else{
-                    
-                    aver1 = (f[i]+clas((double)i*deltat, omega, 3))*(f[0]+clas(0., omega, 3));
-                    aver2 = (f[i-1]+clas((double)(i-1)*deltat, omega, 3))*(f[0]+clas(0., omega, 3));
-                    printf(" % -.20f |", log(absol(xavg[i])));
-//                     printf(" % -.20f |", xx0[i]);
-//                     printf(" % -.20f |", (f[i]+clas((double)i*deltat, omega, potID))*(f[midpt]+clas((double)midpt*deltat, omega, potID)));
-//                     printf(" % -.20f |", (f[LIST_SIZE-1]+clas((double)(LIST_SIZE-1)*deltat, omega, 3)));         
-                    
-//                     printf(" % -.20f |", hbar*(log(absol(xavg[i]))-log(absol(xavg[i-1])))/deltat);
-                    
-                }
+                aver1 = (f[i]+clas((double)i*deltat, omega, 3))*(f[0]+clas(0., omega, 3));
+                aver2 = (f[i-1]+clas((double)(i-1)*deltat, omega, 3))*(f[0]+clas(0., omega, 3));
+                printf(" % -.20f |", log(absol(xavg[i])));
+                  
                 if(i==LIST_SIZE-1){
-//                     printf("% -.20f | ", f[i]);
                     printf("% -.20f | ", dtautmp);
                     
                    
@@ -551,20 +517,8 @@ int main(int argc, char **argv) {
             
             
             for(i=0; i<LIST_SIZE; i++){
-//                 printf("%f\n",xx0[i]);
                 xavg[i] = (xx0[i] - x[i]*x[midpt]);
             }
-//             ret = clFinish(command_queue);
-//             printf("% -.20f | ", omega);
-//             if(j>=inTime){
-//                 runs+=1;
-//                 zero = f[0]+clas(0., omega, 3);
-//                 for(i=0; i<LIST_SIZE; i++){
-// //                     printf(" % -.20f |", (f[i]-favg[i]));
-// //                     xavg[i]+=((f[i]+clas((double)i*deltat, omega, 3))*zero-xavg[i])/(runs+recSimlgth);
-//                 }
-//             }
-            
 //             dtautmp=deltatau;
             if(stabCnt>10){
                 stabCnt = 0;
@@ -580,14 +534,7 @@ int main(int argc, char **argv) {
 //             printf("unstable %d\n", stable);
             ret = clEnqueueReadBuffer(command_queue, dt_mem_obj, CL_TRUE, 0, 
                                         sizeof(double), &dtautmp, 0, NULL, NULL);
-//             ret = clEnqueueReadBuffer(command_queue, nf_mem_obj, CL_TRUE, 0, 
-//                                         LIST_SIZE * sizeof(double), f, 0, NULL, NULL);
-//             ret = clEnqueueReadBuffer(command_queue, nx_mem_obj, CL_TRUE, 0, 
-//                                         LIST_SIZE * sizeof(double), x, 0, NULL,NULL);
-            
-//             for(i=0; i<LIST_SIZE; i++){
-//                 printf("% -.20f", f[i]);
-//             }
+
             dtautmp*=0.950;
             stabCnt = 0;
             ret = clEnqueueWriteBuffer(command_queue, dt_mem_obj, CL_TRUE, 0, 
@@ -694,16 +641,15 @@ int min(int m, int n){
     
 }
 double intConst(int potID){
-    /*
-    double eta = 10.;
-    double lbda = .5;
-    double m = 1.;*/
-    return 1./sqrt((pow(eta,3)*pow((lbda/m),(3./2.))*sqrt(2.)*4./3.));
+    
+//     return 1./sqrt((pow(eta,3)*pow((lbda/m),(3./2.))*sqrt(2.)*4./3.));
+    return 1./sqrt((pow(eta,-3)*pow((V0/m),(3./2.))*sqrt(2.)*4./3.));
     
 }
 double doubleWellSol(double t, double t0){
 
-    return eta * tanh((eta*sqrt((2.*lbda/m))*(t-t0)));
+//     return eta * tanh((eta*sqrt((2.*lbda/m))*(t-t0)));
+    return eta * tanh((sqrt((2.*V0/m))*(t-t0)/eta));
     
 }
 double harmOscSol(double t, double t0){

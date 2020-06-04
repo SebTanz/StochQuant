@@ -10,10 +10,8 @@ import matplotlib.animation as animation
 from matplotlib import pyplot as plt
 from sys import stdout
 
-potential = "harmosc"
-#potential = "poeschlTeller"
-#potential = "double_well"
-#potential = "quartic"
+#potential = "harmosc"
+potential = "double_well"
 
 
 class dataThread (threading.Thread):
@@ -96,45 +94,25 @@ presets = {
         "Nt": 100,
         "dt": .1,
         "potID":0,
-        "theoVal":1.,
+        "theoVal":20.,
         "c":1.,
         "filename":"HarmOsc.txt"
     },
-    "poeschlTeller": {
-        "dtau": .1,
-        "Nt": 100,
-        "dt": 1.,
-        "potID":1,
-        "theoVal":.1315,
-        "c":1.,
-        "filename":"PoeschlTeller.txt"
-    },
-    "quartic": {
-        "dtau": 0.01,
-        "Nt": 50,
-        "dt": 2,
-        "potID":2,
-        "theoVal":1.73,
-        "c":1.,
-        "filename":"Quartic.txt"
-    },
     "double_well": {
-        "dtau": .01,
-        "Nt": 100,
-        "dt": 1.,
+        "dtau": .002,
+        "Nt": 200,
+        "dt": .02,
         "potID":3,
         "theoVal":10,
         "c":1.,
-        "filename":"blabla.txt"
+        "filename":"V0_2e_0-8.txt"
     }
 }
 preset = presets[potential]
 n = preset["Nt"]
 deltat = preset["dt"]
 deltatau = preset["dtau"]
-h = 1e-5
-parisi = 0
-entw = 10000
+entw = 5000
 potID = preset["potID"]
 c = preset["c"]
 strtval = preset["theoVal"]
@@ -142,16 +120,16 @@ mdpoint = 50.
 device = 2
 rpf = 1
 intime = 0
-loops = 10000
+loops = 1000
 inputf = preset["filename"]
 inputf = "0"
 outputf = preset["filename"]
-outputf = "0"
+#outputf = "0"
 acco = 40
 
 dmax=strtval+.5*strtval
 
-p = subprocess.Popen(['./tauhost.o', str(n), str(deltat), str(deltatau), str(h), str(parisi), str(entw), str(potID), str(c), str(device), str(rpf), str(intime), str(loops), inputf, outputf, str(acco)], stdout=subprocess.PIPE, bufsize=1)
+p = subprocess.Popen(['./tauhost.o', str(n), str(deltat), str(deltatau), str(entw), str(potID), str(c), str(device), str(rpf), str(intime), str(loops), inputf, outputf, str(acco)], stdout=subprocess.PIPE, bufsize=1)
 ev = threading.Event()
 queue = Queue()
 closeEv = threading.Event()
